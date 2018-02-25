@@ -62,7 +62,7 @@ worldTests =
                 let
                     tiles =
                         initWorld (fromInt width) (fromInt height)
-                            |> setHamster 2 5
+                            |> setHamster 2 5 (Hamster South)
                             |> Array.toList
                             |> List.map (Array.toList)
                             |> List.foldl (++) []
@@ -91,7 +91,7 @@ isWall tile =
 isHamster : Tile -> Bool
 isHamster tile =
     case tile of
-        Hamster ->
+        Hamster _ ->
             True
 
         _ ->

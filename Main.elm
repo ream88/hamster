@@ -4,16 +4,46 @@ import Array.Hamt as Array exposing (Array)
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes exposing (..)
+import Html.Styled.Events exposing (..)
+
+
+main : Program Never Model Msg
+main =
+    Html.beginnerProgram
+        { model = init
+        , update = update
+        , view = view
+        }
 
 
 type alias Model =
+    { world : World
+    , queue : List Command
+    , error : Maybe String
+    }
+
+
+type alias World =
     Array (Array Tile)
 
 
 type Tile
     = Empty
     | Wall
-    | Hamster
+    | Hamster Direction
+
+
+type Direction
+    = North
+    | East
+    | South
+    | West
+
+
+type Command
+    = Go
+    | RotateLeft
+    | Idle
 
 
 type alias Positive =
@@ -28,23 +58,18 @@ fromInt int =
         Nothing
 
 
-main : Program Never Model msg
-main =
-    Html.beginnerProgram
-        { model = init
-        , update = update
-        , view = view
-        }
-
-
 init : Model
 init =
-    initWorld (fromInt 32) (fromInt 16)
-        |> buildWalls
-        |> setHamster 1 4
+    { world =
+        initWorld (fromInt 32) (fromInt 16)
+            |> buildWalls
+            |> setHamster 1 1 (Hamster South)
+    , queue = []
+    , error = Nothing
+    }
 
 
-initWorld : Positive -> Positive -> Model
+initWorld : Positive -> Positive -> World
 initWorld width height =
     case ( width, height ) of
         ( Just width, Just height ) ->
@@ -58,7 +83,7 @@ initWorld width height =
             Debug.crash "Please provide only positive width and height"
 
 
-buildWalls : Model -> Model
+buildWalls : World -> World
 buildWalls model =
     let
         height_ =
@@ -82,40 +107,83 @@ buildWalls model =
                 )
 
 
-width : Model -> Int
+width : World -> Int
 width =
     Array.length
 
 
-height : Model -> Int
+height : World -> Int
 height model =
     model |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
 
 
-setHamster : Int -> Int -> Model -> Model
-setHamster x y world =
+setHamster : Int -> Int -> Tile -> World -> World
+setHamster x y hamster world =
     let
         row =
             world
                 |> Array.get x
                 |> Maybe.withDefault Array.empty
-                |> Array.set y Hamster
+                |> Array.set y hamster
     in
         world
             |> Array.set x row
 
 
-update : msg -> Model -> Model
+executeCommand : Command -> World -> Result String World
+executeCommand command world =
+    case command of
+        Go ->
+            Ok world
+
+        RotateLeft ->
+            Ok world
+
+        Idle ->
+            Ok world
+
+
+type Msg
+    = Enqueue Command
+    | Tick
+
+
+update : Msg -> Model -> Model
 update msg model =
-    model
+    case msg of
+        Enqueue command ->
+            { model | queue = model.queue ++ [ command ] }
+
+        Tick ->
+            let
+                ( command, newQueue ) =
+                    case model.queue of
+                        command :: tail ->
+                            ( command, tail )
+
+                        _ ->
+                            ( Idle, [] )
+
+                newWorld =
+                    executeCommand command model.world
+            in
+                case newWorld of
+                    Ok newWorld ->
+                        { model | world = newWorld, queue = newQueue }
+
+                    Err err ->
+                        { model | error = Just err }
 
 
-view : Model -> Html msg
-view =
-    viewWorld
+view : Model -> Html Msg
+view { world, queue } =
+    div [ css [ displayFlex ] ]
+        [ viewWorld world
+        , viewControls queue
+        ]
 
 
-viewWorld : Model -> Html msg
+viewWorld : World -> Html Msg
 viewWorld model =
     model
         |> Array.indexedMap
@@ -130,19 +198,42 @@ viewWorld model =
             [ css [ displayFlex ] ]
 
 
-viewTile : Int -> Int -> Tile -> Html msg
+viewTile : Int -> Int -> Tile -> Html Msg
 viewTile x y tile =
     let
-        backgroundImage =
+        background =
             case tile of
                 Empty ->
                     Nothing
 
                 Wall ->
-                    Just "assets/brick.png"
+                    Just <| batch [ backgroundImage (url "assets/brick.png") ]
 
-                Hamster ->
-                    Just "assets/hamster.png"
+                Hamster direction ->
+                    let
+                        directionToDeg direction =
+                            case direction of
+                                North ->
+                                    180
+
+                                East ->
+                                    270
+
+                                South ->
+                                    0
+
+                                West ->
+                                    90
+                    in
+                        Just <|
+                            batch
+                                [ backgroundImage (url "assets/hamster.png")
+                                , direction
+                                    |> directionToDeg
+                                    |> deg
+                                    |> rotate
+                                    |> transform
+                                ]
     in
         div
             [ css
@@ -164,13 +255,14 @@ viewTile x y tile =
                        )
                 )
             ]
-            [ case backgroundImage of
-                Just src_ ->
-                    img
-                        [ src src_
-                        , css
+            [ case background of
+                Just backgroundImage ->
+                    span
+                        [ css
                             [ Css.width (px 32)
                             , Css.height (px 32)
+                            , backgroundSize (px 32)
+                            , backgroundImage
                             ]
                         ]
                         []
@@ -178,3 +270,13 @@ viewTile x y tile =
                 Nothing ->
                     text ""
             ]
+
+
+viewControls : List Command -> Html Msg
+viewControls queue =
+    div []
+        [ button [ onClick <| Enqueue Go ] [ text "Go" ]
+        , button [ onClick <| Enqueue RotateLeft ] [ text "Rotate Left" ]
+        , button [ onClick Tick ] [ text "Next" ]
+        , queue |> List.map (\command -> li [] [ text <| toString command ]) |> ul []
+        ]
