@@ -5,6 +5,8 @@ import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (..)
+import Html.Styled.Keyed as Keyed
+import Html.Styled.Lazy exposing (..)
 import Positive
 import World exposing (World, Tile(..), Direction(..))
 
@@ -123,13 +125,20 @@ viewWorld model =
         |> Array.indexedMap
             (\x row ->
                 row
-                    |> Array.indexedMap (viewTile x)
+                    |> Array.indexedMap (lazyViewTile x)
                     |> Array.toList
-                    |> div []
+                    |> Keyed.node "div" []
             )
         |> Array.toList
         |> div
             [ css [ displayFlex ] ]
+
+
+lazyViewTile : Int -> Int -> Tile -> ( String, Html Msg )
+lazyViewTile x y tile =
+    ( (toString x) ++ "-" ++ (toString y)
+    , lazy3 (\x y -> toUnstyled << viewTile x y) x y tile
+    )
 
 
 viewTile : Int -> Int -> Tile -> Html Msg
