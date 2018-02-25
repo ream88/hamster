@@ -1,0 +1,30 @@
+{
+  "name": "hamster",
+  "version": "1.0.0",
+  "description": "Learn programming with a hamster",
+  "main": "index.html",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "elm-live Main.elm --output=elm.js --open",
+    "test": "elm-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ream88/hamster.git"
+  },
+  "author": "Mario Uher <uher.mario@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ream88/hamster/issues"
+  },
+  "homepage": "https://github.com/ream88/hamster#readme",
+  "devDependencies": {
+    "elm-live": "^2.7.5",
+    "elm-test": "^0.18.12"
+  },
+  "dependencies": {
+    "elm": "^0.18.0"
+  }
+}
