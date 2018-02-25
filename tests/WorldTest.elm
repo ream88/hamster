@@ -4,7 +4,7 @@ import Array.Hamt as Array exposing (Array)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Test exposing (..)
-import World exposing (Tile(..), Direction(South))
+import World exposing (Tile(..), Direction(South), isHamster)
 import Positive exposing (fromInt)
 
 
@@ -76,6 +76,21 @@ worldTests =
                         tiles
                             |> List.any isHamster
                             |> Expect.false "Hamster is not in the world"
+        , fuzz2 positive positive "Hamster can be found" <|
+            \width height ->
+                let
+                    world =
+                        World.init (fromInt width) (fromInt height)
+                            |> World.setHamster 2 5 (Hamster South)
+                in
+                    if width > 2 && height > 5 then
+                        world
+                            |> World.getHamster
+                            |> Expect.equal (Just ( 2, 5, Hamster South ))
+                    else
+                        world
+                            |> World.getHamster
+                            |> Expect.equal Nothing
         ]
 
 
@@ -83,16 +98,6 @@ isWall : Tile -> Bool
 isWall tile =
     case tile of
         Wall ->
-            True
-
-        _ ->
-            False
-
-
-isHamster : Tile -> Bool
-isHamster tile =
-    case tile of
-        Hamster _ ->
             True
 
         _ ->

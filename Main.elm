@@ -30,23 +30,10 @@ init =
     { world =
         World.init (Positive.fromInt 32) (Positive.fromInt 16)
             |> World.buildWalls
-            |> World.setHamster 1 1 (Hamster South)
+            |> World.setHamster 1 5 (Hamster South)
     , queue = []
     , error = Nothing
     }
-
-
-executeCommand : Command -> World -> Result String World
-executeCommand command world =
-    case command of
-        Go ->
-            Ok world
-
-        RotateLeft ->
-            Ok world
-
-        Idle ->
-            Ok world
 
 
 type Msg
@@ -85,6 +72,41 @@ update msg model =
 
                     Err err ->
                         { model | error = Just err }
+
+
+executeCommand : Command -> World -> Result String World
+executeCommand command world =
+    case command of
+        Go ->
+            Ok world
+
+        RotateLeft ->
+            case World.getHamster world of
+                Just ( x, y, Hamster direction ) ->
+                    let
+                        newDirection =
+                            case direction of
+                                North ->
+                                    West
+
+                                East ->
+                                    North
+
+                                South ->
+                                    East
+
+                                West ->
+                                    South
+                    in
+                        world
+                            |> World.setHamster x y (Hamster newDirection)
+                            |> Ok
+
+                _ ->
+                    Err "Hamster is not in the world (anymore)"
+
+        Idle ->
+            Ok world
 
 
 view : Model -> Html Msg

@@ -6,9 +6,12 @@ module World
         , init
         , buildWalls
         , setHamster
+        , getHamster
+        , isHamster
         )
 
 import Array.Hamt as Array exposing (Array)
+import Maybe.Extra as Maybe
 import Positive exposing (Positive)
 
 
@@ -88,3 +91,59 @@ setHamster x y hamster world =
     in
         world
             |> Array.set x row
+
+
+getHamster : World -> Maybe ( Int, Int, Tile )
+getHamster world =
+    case
+        world
+            |> Array.toList
+            |> List.map (Array.toList >> index isHamster)
+            |> List.indexedMap (\x -> Maybe.map (\y -> ( x, y )))
+            |> List.filter Maybe.isJust
+            |> List.head
+            |> Maybe.withDefault Nothing
+    of
+        Just ( x, y ) ->
+            world
+                |> get x y
+                |> Maybe.map (\tile -> ( x, y, tile ))
+
+        Nothing ->
+            Nothing
+
+
+get : Int -> Int -> World -> Maybe Tile
+get x y world =
+    world
+        |> Array.get x
+        |> Maybe.withDefault Array.empty
+        |> Array.get y
+
+
+index : (a -> Bool) -> List a -> Maybe Int
+index =
+    indexHelp 0
+
+
+indexHelp : Int -> (a -> Bool) -> List a -> Maybe Int
+indexHelp index fn list =
+    case list of
+        [] ->
+            Nothing
+
+        head :: tail ->
+            if fn head then
+                Just index
+            else
+                indexHelp (index + 1) fn tail
+
+
+isHamster : Tile -> Bool
+isHamster tile =
+    case tile of
+        Hamster _ ->
+            True
+
+        _ ->
+            False
