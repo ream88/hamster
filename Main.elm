@@ -5,6 +5,8 @@ import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (..)
+import Positive
+import World exposing (World, Tile(..), Direction(..))
 
 
 main : Program Never Model Msg
@@ -23,111 +25,15 @@ type alias Model =
     }
 
 
-type alias World =
-    Array (Array Tile)
-
-
-type Tile
-    = Empty
-    | Wall
-    | Hamster Direction
-
-
-type Direction
-    = North
-    | East
-    | South
-    | West
-
-
-type Command
-    = Go
-    | RotateLeft
-    | Idle
-
-
-type alias Positive =
-    Maybe Int
-
-
-fromInt : Int -> Positive
-fromInt int =
-    if int > 0 then
-        Just int
-    else
-        Nothing
-
-
 init : Model
 init =
     { world =
-        initWorld (fromInt 32) (fromInt 16)
-            |> buildWalls
-            |> setHamster 1 1 (Hamster South)
+        World.init (Positive.fromInt 32) (Positive.fromInt 16)
+            |> World.buildWalls
+            |> World.setHamster 1 1 (Hamster South)
     , queue = []
     , error = Nothing
     }
-
-
-initWorld : Positive -> Positive -> World
-initWorld width height =
-    case ( width, height ) of
-        ( Just width, Just height ) ->
-            Empty
-                |> always
-                |> Array.initialize height
-                |> always
-                |> Array.initialize width
-
-        _ ->
-            Debug.crash "Please provide only positive width and height"
-
-
-buildWalls : World -> World
-buildWalls model =
-    let
-        height_ =
-            height model - 1
-
-        width_ =
-            width model - 1
-    in
-        model
-            |> Array.indexedMap
-                (\x ->
-                    Array.indexedMap
-                        (\y tile ->
-                            if y == 0 || y == height_ then
-                                Wall
-                            else if x == 0 || x == width_ then
-                                Wall
-                            else
-                                tile
-                        )
-                )
-
-
-width : World -> Int
-width =
-    Array.length
-
-
-height : World -> Int
-height model =
-    model |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
-
-
-setHamster : Int -> Int -> Tile -> World -> World
-setHamster x y hamster world =
-    let
-        row =
-            world
-                |> Array.get x
-                |> Maybe.withDefault Array.empty
-                |> Array.set y hamster
-    in
-        world
-            |> Array.set x row
 
 
 executeCommand : Command -> World -> Result String World
@@ -146,6 +52,12 @@ executeCommand command world =
 type Msg
     = Enqueue Command
     | Tick
+
+
+type Command
+    = Go
+    | RotateLeft
+    | Idle
 
 
 update : Msg -> Model -> Model

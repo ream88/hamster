@@ -1,10 +1,11 @@
-module MainTest exposing (..)
+module WorldTest exposing (..)
 
 import Array.Hamt as Array exposing (Array)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Main exposing (..)
 import Test exposing (..)
+import World exposing (Tile(..), Direction(South))
+import Positive exposing (fromInt)
 
 
 worldTests : Test
@@ -12,7 +13,7 @@ worldTests =
     describe "init"
         [ fuzz2 positive positive "Always returns width * height tiles" <|
             \width height ->
-                initWorld (fromInt width) (fromInt height)
+                World.init (fromInt width) (fromInt height)
                     |> Array.map (Array.length)
                     |> Array.foldl (+) 0
                     |> Expect.equal (width * height)
@@ -49,8 +50,8 @@ worldTests =
                             |> List.all isWall
                             |> Expect.true "Has left wall"
                 in
-                    initWorld (fromInt width) (fromInt height)
-                        |> buildWalls
+                    World.init (fromInt width) (fromInt height)
+                        |> World.buildWalls
                         |> Expect.all
                             [ hasTopWall
                             , hasRightWall
@@ -61,8 +62,8 @@ worldTests =
             \width height ->
                 let
                     tiles =
-                        initWorld (fromInt width) (fromInt height)
-                            |> setHamster 2 5 (Hamster South)
+                        World.init (fromInt width) (fromInt height)
+                            |> World.setHamster 2 5 (Hamster South)
                             |> Array.toList
                             |> List.map (Array.toList)
                             |> List.foldl (++) []
