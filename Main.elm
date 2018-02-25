@@ -39,7 +39,7 @@ main =
 
 init : Model
 init =
-    initWorld (fromInt 10) (fromInt 10)
+    initWorld (fromInt 32) (fromInt 16)
         |> buildWalls
         |> setHamster 1 4
 
@@ -69,12 +69,12 @@ buildWalls model =
     in
         model
             |> Array.indexedMap
-                (\left ->
+                (\x ->
                     Array.indexedMap
-                        (\top tile ->
-                            if top == 0 || top == height_ then
+                        (\y tile ->
+                            if y == 0 || y == height_ then
                                 Wall
-                            else if left == 0 || left == width_ then
+                            else if x == 0 || x == width_ then
                                 Wall
                             else
                                 tile
@@ -118,12 +118,63 @@ view =
 viewWorld : Model -> Html msg
 viewWorld model =
     model
-        |> Array.map
-            (\row ->
+        |> Array.indexedMap
+            (\x row ->
                 row
-                    |> Array.map (\tile -> div [] [ text <| toString <| tile ])
+                    |> Array.indexedMap (viewTile x)
                     |> Array.toList
                     |> div []
             )
         |> Array.toList
-        |> div [ css [ displayFlex ] ]
+        |> div
+            [ css [ displayFlex ] ]
+
+
+viewTile : Int -> Int -> Tile -> Html msg
+viewTile x y tile =
+    let
+        backgroundImage =
+            case tile of
+                Empty ->
+                    Nothing
+
+                Wall ->
+                    Just "assets/brick.png"
+
+                Hamster ->
+                    Just "assets/hamster.png"
+    in
+        div
+            [ css
+                ([ Css.width (px 32)
+                 , Css.height (px 32)
+                 , displayFlex
+                 , justifyContent center
+                 , alignItems center
+                 ]
+                    ++ (if x == 0 then
+                            []
+                        else
+                            [ borderLeft3 (px 1) solid (rgba 0 0 0 0.2) ]
+                       )
+                    ++ (if y == 0 then
+                            []
+                        else
+                            [ borderTop3 (px 1) solid (rgba 0 0 0 0.2) ]
+                       )
+                )
+            ]
+            [ case backgroundImage of
+                Just src_ ->
+                    img
+                        [ src src_
+                        , css
+                            [ Css.width (px 32)
+                            , Css.height (px 32)
+                            ]
+                        ]
+                        []
+
+                Nothing ->
+                    text ""
+            ]
