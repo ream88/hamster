@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "start": "elm-live Main.elm --output=elm.js --open",
+    "start": "elm-live src/Main.elm --output=elm.js --open",
     "test": "elm-test"
   },
   "repository": {
