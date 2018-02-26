@@ -48,9 +48,9 @@ init width height =
         ( Just width, Just height ) ->
             Empty
                 |> always
-                |> Array.initialize height
-                |> always
                 |> Array.initialize width
+                |> always
+                |> Array.initialize height
 
         _ ->
             Debug.crash "Please provide only positive width and height"
@@ -67,9 +67,9 @@ buildWalls model =
     in
         model
             |> Array.indexedMap
-                (\x ->
+                (\y ->
                     Array.indexedMap
-                        (\y tile ->
+                        (\x tile ->
                             if y == 0 || y == height_ then
                                 Wall
                             else if x == 0 || x == width_ then
@@ -80,13 +80,13 @@ buildWalls model =
                 )
 
 
-width : World -> Int
-width =
+height : World -> Int
+height =
     Array.length
 
 
-height : World -> Int
-height model =
+width : World -> Int
+width model =
     model |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
 
 
@@ -95,12 +95,20 @@ set x y tile world =
     let
         row =
             world
-                |> Array.get x
+                |> Array.get y
                 |> Maybe.withDefault Array.empty
-                |> Array.set y tile
+                |> Array.set x tile
     in
         world
-            |> Array.set x row
+            |> Array.set y row
+
+
+get : Int -> Int -> World -> Maybe Tile
+get x y world =
+    world
+        |> Array.get y
+        |> Maybe.withDefault Array.empty
+        |> Array.get x
 
 
 findHamster : World -> Maybe ( Int, Int, Tile )
@@ -109,7 +117,7 @@ findHamster world =
         world
             |> Array.toList
             |> List.map (Array.toList >> index isHamster)
-            |> List.indexedMap (\x -> Maybe.map (\y -> ( x, y )))
+            |> List.indexedMap (\y -> Maybe.map (\x -> ( x, y )))
             |> List.filter Maybe.isJust
             |> List.head
             |> Maybe.withDefault Nothing
@@ -184,14 +192,6 @@ rotateHamster world =
 
         _ ->
             Err NoHamster
-
-
-get : Int -> Int -> World -> Maybe Tile
-get x y world =
-    world
-        |> Array.get x
-        |> Maybe.withDefault Array.empty
-        |> Array.get y
 
 
 index : (a -> Bool) -> List a -> Maybe Int

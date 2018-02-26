@@ -17,6 +17,18 @@ worldTests =
                     |> Array.map (Array.length)
                     |> Array.foldl (+) 0
                     |> Expect.equal (width * height)
+        , fuzz2 positive positive "Always generates a world with proper height" <|
+            \width height ->
+                World.init (fromInt width) (fromInt height)
+                    |> Array.length
+                    |> Expect.equal height
+        , fuzz2 positive positive "Always generates a world with proper width" <|
+            \width height ->
+                World.init (fromInt width) (fromInt height)
+                    |> Array.get 0
+                    |> Maybe.withDefault Array.empty
+                    |> Array.length
+                    |> Expect.equal width
         , fuzz2 positive positive "Always surrounds the world with walls" <|
             \width height ->
                 let
@@ -30,15 +42,15 @@ worldTests =
 
                     hasRightWall world =
                         world
-                            |> Array.get (width - 1)
-                            |> Maybe.withDefault Array.empty
+                            |> Array.map (\a -> a |> Array.get (width - 1) |> Maybe.withDefault Empty)
                             |> Array.toList
                             |> List.all isWall
                             |> Expect.true "Has right wall"
 
                     hasBottomWall world =
                         world
-                            |> Array.map (\a -> a |> Array.get (height - 1) |> Maybe.withDefault Empty)
+                            |> Array.get (height - 1)
+                            |> Maybe.withDefault Array.empty
                             |> Array.toList
                             |> List.all isWall
                             |> Expect.true "Has bottom wall"
