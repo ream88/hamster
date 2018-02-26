@@ -3,11 +3,15 @@ module World
         ( World
         , Tile(..)
         , Direction(..)
+        , Error(..)
         , init
         , buildWalls
-        , setHamster
-        , getHamster
+        , get
+        , set
+        , findHamster
         , isHamster
+        , moveHamster
+        , rotateHamster
         )
 
 import Array.Hamt as Array exposing (Array)
@@ -30,6 +34,12 @@ type Direction
     | East
     | South
     | West
+
+
+type Error
+    = NoHamster
+    | Collision
+    | OutOfWorld
 
 
 init : Positive -> Positive -> World
@@ -80,21 +90,21 @@ height model =
     model |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
 
 
-setHamster : Int -> Int -> Tile -> World -> World
-setHamster x y hamster world =
+set : Int -> Int -> Tile -> World -> World
+set x y tile world =
     let
         row =
             world
                 |> Array.get x
                 |> Maybe.withDefault Array.empty
-                |> Array.set y hamster
+                |> Array.set y tile
     in
         world
             |> Array.set x row
 
 
-getHamster : World -> Maybe ( Int, Int, Tile )
-getHamster world =
+findHamster : World -> Maybe ( Int, Int, Tile )
+findHamster world =
     case
         world
             |> Array.toList
@@ -111,6 +121,69 @@ getHamster world =
 
         Nothing ->
             Nothing
+
+
+moveHamster : World -> Result Error World
+moveHamster world =
+    case findHamster world of
+        Just ( x, y, Hamster direction ) ->
+            let
+                ( newX, newY ) =
+                    case direction of
+                        North ->
+                            ( x, y - 1 )
+
+                        East ->
+                            ( x + 1, y )
+
+                        South ->
+                            ( x, y + 1 )
+
+                        West ->
+                            ( x - 1, y )
+            in
+                case get newX newY world of
+                    Just Wall ->
+                        Err Collision
+
+                    Nothing ->
+                        Err OutOfWorld
+
+                    _ ->
+                        world
+                            |> set x y Empty
+                            |> set newX newY (Hamster direction)
+                            |> Ok
+
+        _ ->
+            Err NoHamster
+
+
+rotateHamster : World -> Result Error World
+rotateHamster world =
+    case findHamster world of
+        Just ( x, y, Hamster direction ) ->
+            let
+                newDirection =
+                    case direction of
+                        North ->
+                            West
+
+                        East ->
+                            North
+
+                        South ->
+                            East
+
+                        West ->
+                            South
+            in
+                world
+                    |> set x y (Hamster newDirection)
+                    |> Ok
+
+        _ ->
+            Err NoHamster
 
 
 get : Int -> Int -> World -> Maybe Tile

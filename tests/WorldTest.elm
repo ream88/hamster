@@ -4,7 +4,7 @@ import Array.Hamt as Array exposing (Array)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Test exposing (..)
-import World exposing (Tile(..), Direction(South), isHamster)
+import World exposing (World, Tile(..), Direction(..))
 import Positive exposing (fromInt)
 
 
@@ -61,37 +61,63 @@ worldTests =
         , fuzz2 positive positive "Sets Hamster into the world if possible" <|
             \width height ->
                 let
-                    tiles =
+                    world =
                         World.init (fromInt width) (fromInt height)
-                            |> World.setHamster 2 5 (Hamster South)
-                            |> Array.toList
-                            |> List.map (Array.toList)
-                            |> List.foldl (++) []
+                            |> World.buildWalls
+                            |> World.set 2 5 (Hamster South)
                 in
                     if width > 2 && height > 5 then
-                        tiles
-                            |> List.any isHamster
-                            |> Expect.true "Hamster is in the world"
+                        world
+                            |> World.findHamster
+                            |> Expect.equal (Just ( 2, 5, Hamster South ))
                     else
-                        tiles
-                            |> List.any isHamster
-                            |> Expect.false "Hamster is not in the world"
-        , fuzz2 positive positive "Hamster can be found" <|
+                        world
+                            |> World.findHamster
+                            |> Expect.equal Nothing
+        , fuzz2 positive positive "Hamster can be rotated" <|
             \width height ->
                 let
                     world =
                         World.init (fromInt width) (fromInt height)
-                            |> World.setHamster 2 5 (Hamster South)
+                            |> World.buildWalls
+                            |> World.set 2 5 (Hamster South)
                 in
                     if width > 2 && height > 5 then
                         world
-                            |> World.getHamster
-                            |> Expect.equal (Just ( 2, 5, Hamster South ))
+                            |> World.rotateHamster
+                            |> Result.withDefault world
+                            |> World.findHamster
+                            |> Expect.equal (Just ( 2, 5, Hamster East ))
+                    else
+                        Expect.pass
+        , fuzz2 positive positive "Hamster can be moved if the world is big enough" <|
+            \width height ->
+                let
+                    world =
+                        World.init (fromInt width) (fromInt height)
+                            |> World.buildWalls
+                            |> World.set 2 5 (Hamster South)
+                            |> World.moveHamster
+                in
+                    if width > 3 && height > 7 then
+                        world
+                            |> isOk
+                            |> Expect.true "World is Ok"
                     else
                         world
-                            |> World.getHamster
-                            |> Expect.equal Nothing
+                            |> isOk
+                            |> Expect.false "World is not Ok"
         ]
+
+
+isOk : Result e a -> Bool
+isOk result =
+    case result of
+        Ok _ ->
+            True
+
+        Err _ ->
+            False
 
 
 isWall : Tile -> Bool

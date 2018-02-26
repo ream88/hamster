@@ -8,7 +8,7 @@ import Html.Styled.Events exposing (..)
 import Html.Styled.Keyed as Keyed
 import Html.Styled.Lazy exposing (..)
 import Positive
-import World exposing (World, Tile(..), Direction(..))
+import World exposing (World, Tile(..), Direction(..), Error(..))
 
 
 main : Program Never Model Msg
@@ -23,7 +23,7 @@ main =
 type alias Model =
     { world : World
     , queue : List Command
-    , error : Maybe String
+    , error : Maybe Error
     }
 
 
@@ -32,7 +32,7 @@ init =
     { world =
         World.init (Positive.fromInt 32) (Positive.fromInt 16)
             |> World.buildWalls
-            |> World.setHamster 1 5 (Hamster South)
+            |> World.set 1 1 (Hamster South)
     , queue = []
     , error = Nothing
     }
@@ -64,57 +64,33 @@ update msg model =
 
                         _ ->
                             ( Idle, [] )
-
-                newWorld =
-                    executeCommand command model.world
             in
-                case newWorld of
+                case executeCommand command model.world of
                     Ok newWorld ->
-                        { model | world = newWorld, queue = newQueue }
+                        { model | world = newWorld, queue = newQueue, error = Nothing }
 
                     Err err ->
                         { model | error = Just err }
 
 
-executeCommand : Command -> World -> Result String World
+executeCommand : Command -> World -> Result Error World
 executeCommand command world =
     case command of
         Go ->
-            Ok world
+            World.moveHamster world
 
         RotateLeft ->
-            case World.getHamster world of
-                Just ( x, y, Hamster direction ) ->
-                    let
-                        newDirection =
-                            case direction of
-                                North ->
-                                    West
-
-                                East ->
-                                    North
-
-                                South ->
-                                    East
-
-                                West ->
-                                    South
-                    in
-                        world
-                            |> World.setHamster x y (Hamster newDirection)
-                            |> Ok
-
-                _ ->
-                    Err "Hamster is not in the world (anymore)"
+            World.rotateHamster world
 
         Idle ->
             Ok world
 
 
 view : Model -> Html Msg
-view { world, queue } =
+view { world, queue, error } =
     div [ css [ displayFlex ] ]
         [ viewWorld world
+        , text <| toString <| error
         , viewControls queue
         ]
 
