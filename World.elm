@@ -5,6 +5,8 @@ module World
         , Direction(..)
         , Error(..)
         , init
+        , width
+        , height
         , buildWalls
         , get
         , set

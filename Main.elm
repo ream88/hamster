@@ -5,7 +5,6 @@ import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
-import Html.Styled.Keyed as Keyed
 import Html.Styled.Lazy exposing (..)
 import Positive
 import Time exposing (Time)
@@ -76,13 +75,13 @@ update msg model =
 
         Tick ->
             let
-                ( command, newQueue ) =
+                ( command, newQueue, newRunning ) =
                     case model.queue of
                         command :: tail ->
-                            ( command, tail )
+                            ( command, tail, model.running )
 
                         _ ->
-                            ( Idle, [] )
+                            ( Idle, [], False )
             in
                 case executeCommand command model.world of
                     Ok newWorld ->
@@ -90,7 +89,7 @@ update msg model =
                             | world = newWorld
                             , queue = newQueue
                             , error = Nothing
-                            , running = newQueue |> List.isEmpty |> not
+                            , running = newRunning
                           }
                         , Cmd.none
                         )
@@ -127,45 +126,74 @@ executeCommand command world =
 
 view : Model -> Html Msg
 view model =
-    div [ css [ displayFlex ] ]
-        [ viewWorld model.world
-        , text <| toString <| model.error
-        , viewControls model
+    div
+        [ css
+            [ Css.height (vh 100)
+            , Css.property "display" "grid"
+            , Css.property "grid-template-columns" "auto 400px"
+            , Css.property "grid-template-rows" "1fr 1fr"
+            , fontFamilies [ "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", .value sansSerif ]
+            ]
+        ]
+        [ div
+            [ css
+                [ displayFlex
+                , justifyContent center
+                , alignItems center
+                , order (num 1)
+                ]
+            ]
+            [ viewWorld model.world ]
+        , div [ css [ order (num 3) ] ] []
+        , div
+            [ css
+                [ order (num 2)
+                , Css.property "grid-row" "span 2"
+                ]
+            ]
+            [ viewControls model, text <| toString <| model.error ]
         ]
 
 
 viewWorld : World -> Html Msg
-viewWorld model =
-    model
+viewWorld world =
+    world
         |> Array.indexedMap
-            (\x row ->
+            (\y row ->
                 row
-                    |> Array.indexedMap (lazyViewTile x)
+                    |> Array.indexedMap (\x -> lazyViewTile x y)
                     |> Array.toList
-                    |> Keyed.node "div" []
             )
         |> Array.toList
+        |> List.foldr (++) []
         |> div
-            [ css [ displayFlex ] ]
+            [ css
+                [ Css.property "display" "grid"
+                , Css.property "grid-template-columns" ("repeat(" ++ (toString <| World.width world) ++ ", 1fr)")
+                , Css.property "grid-template-rows" ("repeat(" ++ (toString <| World.height world) ++ ", 1fr)")
+                , maxWidth (px <| toFloat <| World.width world * 32)
+                ]
+            ]
 
 
-lazyViewTile : Int -> Int -> Tile -> ( String, Html Msg )
+lazyViewTile : Int -> Int -> Tile -> Html Msg
 lazyViewTile x y tile =
-    ( (toString x) ++ "-" ++ (toString y)
-    , lazy3 (\x y -> toUnstyled << viewTile x y) x y tile
-    )
+    lazy3 (\x y -> toUnstyled << viewTile x y) x y tile
 
 
 viewTile : Int -> Int -> Tile -> Html Msg
 viewTile x y tile =
     let
-        background =
+        border =
+            boxShadow4 (px 0) (px 0) (px 1) (rgba 0 0 0 0.25)
+
+        backgroundImage_ =
             case tile of
                 Empty ->
-                    Nothing
+                    batch [ border ]
 
                 Wall ->
-                    Just <| batch [ backgroundImage (url "assets/brick.png") ]
+                    batch [ backgroundImage (url "assets/brick.png") ]
 
                 Hamster direction ->
                     let
@@ -183,51 +211,26 @@ viewTile x y tile =
                                 West ->
                                     90
                     in
-                        Just <|
-                            batch
-                                [ backgroundImage (url "assets/hamster.png")
-                                , direction
-                                    |> directionToDeg
-                                    |> deg
-                                    |> rotate
-                                    |> transform
-                                ]
-    in
-        div
-            [ css
-                ([ Css.width (px 32)
-                 , Css.height (px 32)
-                 , displayFlex
-                 , justifyContent center
-                 , alignItems center
-                 ]
-                    ++ (if x == 0 then
-                            []
-                        else
-                            [ borderLeft3 (px 1) solid (rgba 0 0 0 0.2) ]
-                       )
-                    ++ (if y == 0 then
-                            []
-                        else
-                            [ borderTop3 (px 1) solid (rgba 0 0 0 0.2) ]
-                       )
-                )
-            ]
-            [ case background of
-                Just backgroundImage ->
-                    span
-                        [ css
-                            [ Css.width (px 32)
-                            , Css.height (px 32)
-                            , backgroundSize (px 32)
-                            , backgroundImage
+                        batch
+                            [ backgroundImage (url "assets/hamster.png")
+                            , direction
+                                |> directionToDeg
+                                |> deg
+                                |> rotate
+                                |> transform
+                            , border
                             ]
-                        ]
-                        []
-
-                Nothing ->
-                    text ""
+    in
+        span
+            [ css
+                [ Css.width (px 32)
+                , Css.height (px 32)
+                , backgroundSize (pct 100)
+                , backgroundImage_
+                ]
+            , title ("x: " ++ toString x ++ " y: " ++ toString y)
             ]
+            []
 
 
 viewControls : Model -> Html Msg
