@@ -40,7 +40,7 @@ init =
       , queue = []
       , error = Nothing
       , running = False
-      , interval = 1000
+      , interval = 900
       }
     , Cmd.none
     )
@@ -107,7 +107,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     if model.running then
-        Time.every (model.interval * Time.millisecond) (always Tick)
+        Time.every ((1000 - model.interval) * Time.millisecond) (always Tick)
     else
         Sub.none
 
@@ -245,8 +245,8 @@ viewControls { queue, running, interval } =
         , input
             [ type_ "range"
             , onInput (SetInterval << String.toFloat)
-            , Attributes.min "100"
-            , Attributes.max "1000"
+            , Attributes.min "0"
+            , Attributes.max "900"
             , step "300"
             , value (toString interval)
             ]
