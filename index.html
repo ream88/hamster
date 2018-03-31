@@ -1,15 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <title>Hamster</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" />
-</head>
-<body>
-  <main></main>
-  <script src="elm.js"></script>
-  <script>Elm.Main.embed(document.querySelector("main"))</script>
-</body>
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Hamster</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css"/>
+  </head>
+  <body>
+    <main></main>
+    <script src="elm.js"></script>
+    <script>
+      const app = Elm.Main.embed(document.querySelector("main"))
+
+      app.ports.infoForOutside.subscribe(function (msg) {
+        switch (msg.tag) {
+          case "Eval":
+            try {
+              eval(msg.data)
+            } catch (e) {
+              console.log(e)
+            }
+            break
+
+          default:
+            console.warn('Unknown infoForOutside: ' + msg.tag)
+        }
+      })
+
+      function vor() {
+        app.ports.infoForElm.send({tag: "CommandCalled", data: "Go"})
+      }
+
+      function linksUm() {
+        app.ports.infoForElm.send({tag: "CommandCalled", data: "RotateLeft"})
+      }
+    </script>
+  </body>
 </html>

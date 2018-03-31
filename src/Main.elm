@@ -1,11 +1,13 @@
 module Main exposing (..)
 
 import Array.Hamt as Array exposing (Array)
+import Command exposing (Command(..))
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
+import Ports exposing (InfoForElm(..), InfoForOutside(..))
 import Positive
 import Time exposing (Time)
 import World exposing (World, Tile(..), Direction(..), Error(..))
@@ -27,6 +29,7 @@ type alias Model =
     , error : Maybe Error
     , running : Bool
     , interval : Float
+    , code : String
     }
 
 
@@ -40,27 +43,34 @@ init =
       , error = Nothing
       , running = False
       , interval = 900
+      , code = ""
       }
     , Cmd.none
     )
 
 
 type Msg
-    = Enqueue Command
+    = OutsideInfo InfoForElm
+    | OutsideError String
+    | Enqueue Command
     | Toggle
     | SetInterval (Result String Float)
     | Tick
-
-
-type Command
-    = Go
-    | RotateLeft
-    | Idle
+    | SetCode String
+    | Run
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        OutsideInfo infoForElm ->
+            case infoForElm of
+                CommandCalled command ->
+                    ( { model | queue = model.queue ++ [ command ] }, Cmd.none )
+
+        OutsideError _ ->
+            ( model, Cmd.none )
+
         Enqueue command ->
             ( { model | queue = model.queue ++ [ command ] }, Cmd.none )
 
@@ -72,6 +82,12 @@ update msg model =
 
         SetInterval (Err _) ->
             ( model, Cmd.none )
+
+        SetCode code ->
+            ( { model | code = code }, Cmd.none )
+
+        Run ->
+            ( model, Ports.sendInfoOutside (Eval model.code) )
 
         Tick ->
             let
@@ -105,10 +121,13 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.running then
-        Time.every ((1000 - model.interval) * Time.millisecond) (always Tick)
-    else
-        Sub.none
+    Sub.batch
+        [ if model.running then
+            Time.every ((1000 - model.interval) * Time.millisecond) (always Tick)
+          else
+            Sub.none
+        , Ports.getInfoFromOutside OutsideInfo OutsideError
+        ]
 
 
 executeCommand : Command -> World -> Result Error World
@@ -144,7 +163,17 @@ view model =
                 ]
             ]
             [ viewWorld model.world ]
-        , div [ css [ order (num 3) ] ] []
+        , div [ css [ order (num 3) ] ]
+            [ textarea
+                [ css
+                    [ Css.width (pct 100)
+                    , Css.height (pct 100)
+                    ]
+                , onInput SetCode
+                , value model.code
+                ]
+                []
+            ]
         , div
             [ css
                 [ order (num 2)
@@ -245,6 +274,7 @@ viewControls { queue, running, interval } =
               else
                 text "Start"
             ]
+        , button [ onClick Run ] [ text "Run" ]
         , input
             [ type_ "range"
             , onInput (SetInterval << String.toFloat)
