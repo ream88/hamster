@@ -151,6 +151,9 @@ executeFunction function maybeWorld =
         |> Result.map
             (\world ->
                 case function of
+                    Not nestedFunction ->
+                        not (executeFunction nestedFunction maybeWorld)
+
                     NotBlocked ->
                         World.isBlocked maybeWorld
             )

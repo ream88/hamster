@@ -10,4 +10,5 @@ type Instruction
 
 
 type Function
-    = NotBlocked
+    = Not Function
+    | NotBlocked
