@@ -7,7 +7,8 @@ import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
-import Instructions exposing (Function(..), Instruction(..))
+import Instructions exposing (Function(..), Instruction(..), parser)
+import Parser
 import Positive
 import Task
 import Task.Extra as Task
@@ -27,7 +28,7 @@ main =
 
 type alias Model =
     { world : Result Error World
-    , instructions : List Instruction
+    , instructions : Result (List Parser.DeadEnd) (List Instruction)
     , running : Bool
     , interval : Float
     , code : String
@@ -40,7 +41,7 @@ init _ =
             World.init (Positive.fromInt 32) (Positive.fromInt 16)
                 |> World.buildWalls
                 |> World.set 1 1 (Hamster South)
-      , instructions = []
+      , instructions = Ok []
       , running = False
       , interval = 750
       , code = ""
@@ -56,17 +57,17 @@ type Msg
     | SetInterval (Maybe Float)
     | Tick
     | SetCode String
-    | Run
+    | ParseCode
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         PrependInstruction instruction ->
-            ( { model | instructions = instruction :: model.instructions }, Cmd.none )
+            ( { model | instructions = Result.map (\instructions -> instruction :: instructions) model.instructions }, Cmd.none )
 
         AppendInstruction instruction ->
-            ( { model | instructions = model.instructions ++ [ instruction ] }, Cmd.none )
+            ( { model | instructions = Result.map (\instructions -> instructions ++ [ instruction ]) model.instructions }, Cmd.none )
 
         Toggle ->
             ( { model | running = not model.running }, Cmd.none )
@@ -80,20 +81,20 @@ update msg model =
         SetCode code ->
             ( { model | code = code }, Cmd.none )
 
-        Run ->
-            ( model, Cmd.none )
+        ParseCode ->
+            ( { model | instructions = Parser.run Instructions.parser model.code }, Cmd.none )
 
         Tick ->
             model.world
                 |> Result.map
                     (\_ ->
                         case model.instructions of
-                            instruction :: newInstructions ->
+                            Ok (instruction :: newInstructions) ->
                                 let
                                     ( newWorld, cmd ) =
                                         executeInstruction instruction model.world
 
-                                    newRunning =
+                                    newParseCodening =
                                         case newWorld of
                                             Err _ ->
                                                 False
@@ -101,9 +102,9 @@ update msg model =
                                             _ ->
                                                 model.running
                                 in
-                                ( { model | world = newWorld, running = newRunning, instructions = newInstructions }, cmd )
+                                ( { model | world = newWorld, running = newParseCodening, instructions = Ok newInstructions }, cmd )
 
-                            [] ->
+                            _ ->
                                 ( { model | running = False }, Cmd.none )
                     )
                 |> Result.withDefault ( model, Cmd.none )
@@ -314,35 +315,40 @@ viewTile x y tile =
 
 
 viewControls : Model -> Html Msg
-viewControls { instructions, running, interval } =
+viewControls model =
     div []
         [ button [ onClick <| AppendInstruction Go ] [ text "Go" ]
         , button [ onClick <| AppendInstruction <| Block [ Go, Go, Go, Go, Go ] ] [ text "Go 5x times" ]
         , button [ onClick <| AppendInstruction RotateLeft ] [ text "Rotate Left" ]
         , button [ onClick <| AppendInstruction <| If NotBlocked Go ] [ text "Go if NotBlocked" ]
         , button [ onClick <| AppendInstruction <| While NotBlocked Go ] [ text "Go while NotBlocked" ]
-        , button [ onClick <| AppendInstruction <| While NotBlocked (Block [ While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft ]) ] [ text "Run in circle forever" ]
+        , button [ onClick <| AppendInstruction <| While NotBlocked (Block [ While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft ]) ] [ text "ParseCode in circle forever" ]
         , button [ onClick Tick ] [ text "Next" ]
         , button [ onClick Toggle ]
-            [ if running then
+            [ if model.running then
                 text "Stop"
 
               else
                 text "Start"
             ]
-        , button [ onClick Run ] [ text "Run" ]
+        , button [ onClick ParseCode ] [ text "Parse Code" ]
         , input
             [ type_ "range"
             , onInput (SetInterval << String.toFloat)
             , Attributes.min "0"
             , Attributes.max "1000"
             , step "250"
-            , value (String.fromFloat interval)
+            , value (String.fromFloat model.interval)
             ]
             []
-        , instructions
-            |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
-            |> ul []
+        , case model.instructions of
+            Ok instructions ->
+                instructions
+                    |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
+                    |> ul []
+
+            Err reason ->
+                text <| Debug.toString <| reason
         ]
 
 
