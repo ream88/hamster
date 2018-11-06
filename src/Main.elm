@@ -224,6 +224,7 @@ view model =
                 [ css
                     [ Css.width (pct 100)
                     , Css.height (pct 100)
+                    , fontFamilies [ "Consolas", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Monaco", "Courier New", "Courier", .value monospace ]
                     ]
                 , onInput SetCode
                 , value model.code
