@@ -42,7 +42,7 @@ init _ =
                 |> World.set 1 1 (Hamster South)
       , instructions = []
       , running = False
-      , interval = 900
+      , interval = 750
       , code = ""
       }
     , Cmd.none
@@ -84,24 +84,29 @@ update msg model =
             ( model, Cmd.none )
 
         Tick ->
-            case model.instructions of
-                instruction :: newInstructions ->
-                    let
-                        ( newWorld, cmd ) =
-                            executeInstruction instruction model.world
+            model.world
+                |> Result.map
+                    (\_ ->
+                        case model.instructions of
+                            instruction :: newInstructions ->
+                                let
+                                    ( newWorld, cmd ) =
+                                        executeInstruction instruction model.world
 
-                        newRunning =
-                            case newWorld of
-                                Err _ ->
-                                    False
+                                    newRunning =
+                                        case newWorld of
+                                            Err _ ->
+                                                False
 
-                                _ ->
-                                    model.running
-                    in
-                    ( { model | world = newWorld, running = newRunning, instructions = newInstructions }, cmd )
+                                            _ ->
+                                                model.running
+                                in
+                                ( { model | world = newWorld, running = newRunning, instructions = newInstructions }, cmd )
 
-                [] ->
-                    ( { model | running = False }, Cmd.none )
+                            [] ->
+                                ( { model | running = False }, Cmd.none )
+                    )
+                |> Result.withDefault ( model, Cmd.none )
 
 
 executeInstruction : Instruction -> Result Error World -> ( Result Error World, Cmd Msg )
@@ -316,6 +321,7 @@ viewControls { instructions, running, interval } =
         , button [ onClick <| AppendInstruction RotateLeft ] [ text "Rotate Left" ]
         , button [ onClick <| AppendInstruction <| If NotBlocked Go ] [ text "Go if NotBlocked" ]
         , button [ onClick <| AppendInstruction <| While NotBlocked Go ] [ text "Go while NotBlocked" ]
+        , button [ onClick <| AppendInstruction <| While NotBlocked (Block [ While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft ]) ] [ text "Run in circle forever" ]
         , button [ onClick Tick ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if running then
@@ -329,8 +335,8 @@ viewControls { instructions, running, interval } =
             [ type_ "range"
             , onInput (SetInterval << String.toFloat)
             , Attributes.min "0"
-            , Attributes.max "900"
-            , step "300"
+            , Attributes.max "1000"
+            , step "250"
             , value (String.fromFloat interval)
             ]
             []
