@@ -6,7 +6,6 @@ import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
-import Ports exposing (InfoForElm(..), InfoForOutside(..))
 import Positive
 import Time
 import World exposing (Direction(..), Error(..), Tile(..), World)
@@ -49,9 +48,7 @@ init _ =
 
 
 type Msg
-    = OutsideInfo InfoForElm
-    | OutsideError String
-    | Enqueue Command
+    = Enqueue Command
     | Toggle
     | SetInterval (Maybe Float)
     | Tick
@@ -62,14 +59,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        OutsideInfo infoForElm ->
-            case infoForElm of
-                CommandCalled command ->
-                    ( { model | queue = model.queue ++ [ command ] }, Cmd.none )
-
-        OutsideError _ ->
-            ( model, Cmd.none )
-
         Enqueue command ->
             ( { model | queue = model.queue ++ [ command ] }, Cmd.none )
 
@@ -86,7 +75,7 @@ update msg model =
             ( { model | code = code }, Cmd.none )
 
         Run ->
-            ( model, Ports.sendInfoOutside (Eval model.code) )
+            ( model, Cmd.none )
 
         Tick ->
             let
@@ -126,7 +115,6 @@ subscriptions model =
 
           else
             Sub.none
-        , Ports.getInfoFromOutside OutsideInfo OutsideError
         ]
 
 
