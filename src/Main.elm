@@ -1,12 +1,16 @@
+module Main exposing (Model, Msg(..), init, lazyViewTile, main, subscriptions, update, view, viewControls, viewTile, viewWorld)
+
 import Array exposing (Array)
 import Browser
-import Command exposing (Command(..))
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
+import Instructions exposing (Function(..), Instruction(..))
 import Positive
+import Task
+import Task.Extra as Task
 import Time
 import World exposing (Direction(..), Error(..), Tile(..), World)
 
@@ -23,8 +27,7 @@ main =
 
 type alias Model =
     { world : Result Error World
-    , queue : List Command
-    , error : Maybe Error
+    , instructions : List Instruction
     , running : Bool
     , interval : Float
     , code : String
@@ -37,8 +40,7 @@ init _ =
             World.init (Positive.fromInt 32) (Positive.fromInt 16)
                 |> World.buildWalls
                 |> World.set 1 1 (Hamster South)
-      , queue = []
-      , error = Nothing
+      , instructions = []
       , running = False
       , interval = 900
       , code = ""
@@ -48,7 +50,8 @@ init _ =
 
 
 type Msg
-    = Enqueue Command
+    = PrependInstruction Instruction
+    | AppendInstruction Instruction
     | Toggle
     | SetInterval (Maybe Float)
     | Tick
@@ -59,8 +62,11 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Enqueue command ->
-            ( { model | queue = model.queue ++ [ command ] }, Cmd.none )
+        PrependInstruction instruction ->
+            ( { model | instructions = instruction :: model.instructions }, Cmd.none )
+
+        AppendInstruction instruction ->
+            ( { model | instructions = model.instructions ++ [ instruction ] }, Cmd.none )
 
         Toggle ->
             ( { model | running = not model.running }, Cmd.none )
@@ -79,56 +85,110 @@ update msg model =
 
         Tick ->
             let
-                ( command, newQueue, newRunning ) =
-                    case model.queue of
+                ( instruction, newInstructions, newRunning ) =
+                    case model.instructions of
                         head :: tail ->
                             ( head, tail, model.running )
 
                         _ ->
                             ( Idle, [], False )
+
+                ( newWorld, cmd ) =
+                    executeInstruction instruction model.world
             in
-            case executeCommand command model.world of
-                Ok newWorld ->
-                    ( { model
-                        | world = Ok newWorld
-                        , queue = newQueue
-                        , error = Nothing
-                        , running = newRunning
-                      }
-                    , Cmd.none
-                    )
+            ( { model
+                | world = newWorld
+                , instructions = newInstructions
+                , running =
+                    case newWorld of
+                        Err _ ->
+                            False
 
-                Err err ->
-                    ( { model
-                        | error = Just err
-                        , running = False
-                      }
-                    , Cmd.none
-                    )
+                        _ ->
+                            newRunning
+              }
+            , cmd
+            )
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.batch
-        [ if model.running then
-            Time.every (1000 - model.interval) (always Tick)
+executeInstruction : Instruction -> Result Error World -> ( Result Error World, Cmd Msg )
+executeInstruction instruction maybeWorld =
+    case
+        maybeWorld
+            |> increaseExecutions
+            |> checkExecutionsLimit
+    of
+        Ok world ->
+            case instruction of
+                Go ->
+                    ( World.moveHamster (Ok world), Cmd.none )
 
-          else
-            Sub.none
-        ]
+                RotateLeft ->
+                    ( World.rotateHamster (Ok world), Cmd.none )
+
+                Idle ->
+                    ( Ok world, Cmd.none )
+
+                Block instructions ->
+                    ( Ok world, instructions |> List.map (Task.send << PrependInstruction) |> Cmd.batch )
+
+                If function nestedInstruction ->
+                    if executeFunction function (Ok world) then
+                        ( Ok world, Task.send (PrependInstruction nestedInstruction) )
+
+                    else
+                        ( Ok world, Cmd.none )
+
+                While function nestedInstruction ->
+                    if executeFunction function (Ok world) then
+                        ( Ok world
+                        , Cmd.batch
+                            [ Task.send (PrependInstruction nestedInstruction)
+                            , Task.send (PrependInstruction (While function nestedInstruction))
+                            ]
+                        )
+
+                    else
+                        ( Ok world, Cmd.none )
+
+        Err reason ->
+            ( Err reason, Cmd.none )
 
 
-executeCommand : Command -> Result Error World -> Result Error World
-executeCommand command world =
-    case command of
-        Go ->
-            World.moveHamster world
+executeFunction : Function -> Result Error World -> Bool
+executeFunction function maybeWorld =
+    maybeWorld
+        |> Result.map
+            (\world ->
+                case function of
+                    NotBlocked ->
+                        World.isBlocked maybeWorld
+            )
+        |> Result.withDefault False
 
-        RotateLeft ->
-            World.rotateHamster world
 
-        Idle ->
-            world
+executionsLimit : Int
+executionsLimit =
+    1000
+
+
+checkExecutionsLimit : Result Error World -> Result Error World
+checkExecutionsLimit world =
+    case world of
+        Ok { executions } ->
+            if executions >= executionsLimit then
+                Err ExecutionLimitReached
+
+            else
+                world
+
+        err ->
+            err
+
+
+increaseExecutions : Result Error World -> Result Error World
+increaseExecutions =
+    Result.map (\world -> { world | executions = world.executions + 1 })
 
 
 view : Model -> Html Msg
@@ -168,34 +228,34 @@ view model =
                 , Css.property "grid-row" "span 2"
                 ]
             ]
-            [ viewControls model, text <| Debug.toString <| model.error ]
+            [ viewControls model ]
         ]
 
 
 viewWorld : Result Error World -> Html Msg
 viewWorld maybeWorld =
-    maybeWorld
-        |> Result.map
-            (\world ->
-                world
-                    |> Array.indexedMap
-                        (\y row ->
-                            row
-                                |> Array.indexedMap (\x -> lazyViewTile x y)
-                                |> Array.toList
-                        )
-                    |> Array.toList
-                    |> List.foldr (++) []
-                    |> div
-                        [ css
-                            [ Css.property "display" "grid"
-                            , Css.property "grid-template-columns" ("repeat(" ++ (String.fromInt <| World.width maybeWorld) ++ ", 1fr)")
-                            , Css.property "grid-template-rows" ("repeat(" ++ (String.fromInt <| World.height maybeWorld) ++ ", 1fr)")
-                            , maxWidth (px <| toFloat <| World.width maybeWorld * 32)
-                            ]
+    case maybeWorld of
+        Ok world ->
+            world.tiles
+                |> Array.indexedMap
+                    (\y row ->
+                        row
+                            |> Array.indexedMap (\x -> lazyViewTile x y)
+                            |> Array.toList
+                    )
+                |> Array.toList
+                |> List.foldr (++) []
+                |> div
+                    [ css
+                        [ Css.property "display" "grid"
+                        , Css.property "grid-template-columns" ("repeat(" ++ (String.fromInt <| World.width maybeWorld) ++ ", 1fr)")
+                        , Css.property "grid-template-rows" ("repeat(" ++ (String.fromInt <| World.height maybeWorld) ++ ", 1fr)")
+                        , maxWidth (px <| toFloat <| World.width maybeWorld * 32)
                         ]
-            )
-        |> Result.withDefault (text "The world is broken!")
+                    ]
+
+        Err err ->
+            text <| Debug.toString err
 
 
 lazyViewTile : Int -> Int -> Tile -> Html Msg
@@ -256,10 +316,13 @@ viewTile x y tile =
 
 
 viewControls : Model -> Html Msg
-viewControls { queue, running, interval } =
+viewControls { instructions, running, interval } =
     div []
-        [ button [ onClick <| Enqueue Go ] [ text "Go" ]
-        , button [ onClick <| Enqueue RotateLeft ] [ text "Rotate Left" ]
+        [ button [ onClick <| AppendInstruction Go ] [ text "Go" ]
+        , button [ onClick <| AppendInstruction <| Block [ Go, Go, Go, Go, Go ] ] [ text "Go 5x times" ]
+        , button [ onClick <| AppendInstruction RotateLeft ] [ text "Rotate Left" ]
+        , button [ onClick <| AppendInstruction <| If NotBlocked Go ] [ text "Go if NotBlocked" ]
+        , button [ onClick <| AppendInstruction <| While NotBlocked Go ] [ text "Go while NotBlocked" ]
         , button [ onClick Tick ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if running then
@@ -278,7 +341,18 @@ viewControls { queue, running, interval } =
             , value (String.fromFloat interval)
             ]
             []
-        , queue
-            |> List.map (\command -> li [] [ text <| Debug.toString <| command ])
+        , instructions
+            |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
             |> ul []
+        ]
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ if model.running then
+            Time.every (1000 - model.interval) (always Tick)
+
+          else
+            Sub.none
         ]

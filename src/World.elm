@@ -8,6 +8,7 @@ module World exposing
     , get
     , height
     , init
+    , isBlocked
     , isHamster
     , moveHamster
     , rotateHamster
@@ -21,7 +22,7 @@ import Positive exposing (Positive)
 
 
 type alias World =
-    Array (Array Tile)
+    { tiles : Array (Array Tile), executions : Int }
 
 
 type Tile
@@ -41,22 +42,26 @@ type Error
     = NoHamster
     | Collision
     | OutOfWorld
-    | InvalidSize
+    | InvalidWorldSize
+    | ExecutionLimitReached
 
 
 init : Positive -> Positive -> Result Error World
 init maybeWidth maybeHeight =
     case ( maybeWidth, maybeHeight ) of
         ( Just positiveWidth, Just positiveHeight ) ->
-            Empty
-                |> always
-                |> Array.initialize positiveWidth
-                |> always
-                |> Array.initialize positiveHeight
-                |> Ok
+            Ok
+                { tiles =
+                    Empty
+                        |> always
+                        |> Array.initialize positiveWidth
+                        |> always
+                        |> Array.initialize positiveHeight
+                , executions = 0
+                }
 
         _ ->
-            Err InvalidSize
+            Err InvalidWorldSize
 
 
 buildWalls : Result Error World -> Result Error World
@@ -71,28 +76,32 @@ buildWalls maybeWorld =
     maybeWorld
         |> Result.map
             (\world ->
-                world
-                    |> Array.indexedMap
-                        (\y ->
-                            Array.indexedMap
-                                (\x tile ->
-                                    if y == 0 || y == height_ then
-                                        Wall
+                let
+                    newTiles =
+                        world.tiles
+                            |> Array.indexedMap
+                                (\y ->
+                                    Array.indexedMap
+                                        (\x tile ->
+                                            if y == 0 || y == height_ then
+                                                Wall
 
-                                    else if x == 0 || x == width_ then
-                                        Wall
+                                            else if x == 0 || x == width_ then
+                                                Wall
 
-                                    else
-                                        tile
+                                            else
+                                                tile
+                                        )
                                 )
-                        )
+                in
+                { world | tiles = newTiles }
             )
 
 
 height : Result Error World -> Int
 height maybeWorld =
     maybeWorld
-        |> Result.map Array.length
+        |> Result.map (Array.length << .tiles)
         |> Result.withDefault 0
 
 
@@ -101,7 +110,7 @@ width maybeWorld =
     maybeWorld
         |> Result.map
             (\world ->
-                world |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
+                world.tiles |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
             )
         |> Result.withDefault 0
 
@@ -112,13 +121,16 @@ set x y tile =
         (\world ->
             let
                 row =
-                    world
+                    world.tiles
                         |> Array.get y
                         |> Maybe.withDefault Array.empty
                         |> Array.set x tile
+
+                newTiles =
+                    world.tiles
+                        |> Array.set y row
             in
-            world
-                |> Array.set y row
+            { world | tiles = newTiles }
         )
 
 
@@ -127,7 +139,7 @@ get x y maybeWorld =
     maybeWorld
         |> Result.map
             (\world ->
-                world
+                world.tiles
                     |> Array.get y
                     |> Maybe.withDefault Array.empty
                     |> Array.get x
@@ -141,7 +153,7 @@ findHamster maybeWorld =
         |> Result.map
             (\world ->
                 case
-                    world
+                    world.tiles
                         |> Array.toList
                         |> List.map (Array.toList >> index isHamster)
                         |> List.indexedMap (\y -> Maybe.map (\x -> ( x, y )))
@@ -158,6 +170,13 @@ findHamster maybeWorld =
                         Nothing
             )
         |> Result.withDefault Nothing
+
+
+isBlocked : Result Error World -> Bool
+isBlocked maybeWorld =
+    moveHamster maybeWorld
+        |> Result.map (always True)
+        |> Result.withDefault False
 
 
 moveHamster : Result Error World -> Result Error World
