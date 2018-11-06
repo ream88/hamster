@@ -84,31 +84,24 @@ update msg model =
             ( model, Cmd.none )
 
         Tick ->
-            let
-                ( instruction, newInstructions, newRunning ) =
-                    case model.instructions of
-                        head :: tail ->
-                            ( head, tail, model.running )
+            case model.instructions of
+                instruction :: newInstructions ->
+                    let
+                        ( newWorld, cmd ) =
+                            executeInstruction instruction model.world
 
-                        _ ->
-                            ( Idle, [], False )
+                        newRunning =
+                            case newWorld of
+                                Err _ ->
+                                    False
 
-                ( newWorld, cmd ) =
-                    executeInstruction instruction model.world
-            in
-            ( { model
-                | world = newWorld
-                , instructions = newInstructions
-                , running =
-                    case newWorld of
-                        Err _ ->
-                            False
+                                _ ->
+                                    model.running
+                    in
+                    ( { model | world = newWorld, running = newRunning, instructions = newInstructions }, cmd )
 
-                        _ ->
-                            newRunning
-              }
-            , cmd
-            )
+                [] ->
+                    ( { model | running = False }, Cmd.none )
 
 
 executeInstruction : Instruction -> Result Error World -> ( Result Error World, Cmd Msg )
@@ -125,9 +118,6 @@ executeInstruction instruction maybeWorld =
 
                 RotateLeft ->
                     ( World.rotateHamster (Ok world), Cmd.none )
-
-                Idle ->
-                    ( Ok world, Cmd.none )
 
                 Block instructions ->
                     ( Ok world, instructions |> List.map (Task.send << PrependInstruction) |> Cmd.batch )
