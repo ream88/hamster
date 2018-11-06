@@ -108,10 +108,7 @@ height maybeWorld =
 width : Result Error World -> Int
 width maybeWorld =
     maybeWorld
-        |> Result.map
-            (\world ->
-                world.tiles |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
-            )
+        |> Result.map (.tiles >> Array.get 0 >> Maybe.withDefault Array.empty >> Array.length)
         |> Result.withDefault 0
 
 
@@ -137,13 +134,7 @@ set x y tile =
 get : Int -> Int -> Result Error World -> Maybe Tile
 get x y maybeWorld =
     maybeWorld
-        |> Result.map
-            (\world ->
-                world.tiles
-                    |> Array.get y
-                    |> Maybe.withDefault Array.empty
-                    |> Array.get x
-            )
+        |> Result.map (.tiles >> Array.get y >> Maybe.withDefault Array.empty >> Array.get x)
         |> Result.withDefault Nothing
 
 
@@ -151,9 +142,9 @@ findHamster : Result Error World -> Maybe ( Int, Int, Tile )
 findHamster maybeWorld =
     maybeWorld
         |> Result.map
-            (\world ->
+            (\{ tiles } ->
                 case
-                    world.tiles
+                    tiles
                         |> Array.toList
                         |> List.map (Array.toList >> index isHamster)
                         |> List.indexedMap (\y -> Maybe.map (\x -> ( x, y )))
@@ -174,7 +165,8 @@ findHamster maybeWorld =
 
 isBlocked : Result Error World -> Bool
 isBlocked maybeWorld =
-    moveHamster maybeWorld
+    maybeWorld
+        |> moveHamster
         |> Result.map (always True)
         |> Result.withDefault False
 
