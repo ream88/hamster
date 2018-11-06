@@ -95,12 +95,9 @@ update msg model =
                                         executeInstruction instruction model.world
 
                                     newRunning =
-                                        case newWorld of
-                                            Err _ ->
-                                                False
-
-                                            _ ->
-                                                model.running
+                                        newWorld
+                                            |> Result.map (always model.running)
+                                            |> Result.withDefault False
                                 in
                                 ( { model | world = newWorld, running = newRunning, instructions = Ok newInstructions }, cmd )
 
@@ -127,28 +124,22 @@ executeInstruction instruction maybeWorld =
 
                 If function nestedInstructions ->
                     if executeFunction function (Ok world) then
-                        let
-                            cmd =
-                                nestedInstructions
-                                    |> List.map (Task.send << PrependInstruction)
-                                    |> Cmd.batch
-                        in
-                        ( Ok world, cmd )
+                        ( Ok world
+                        , nestedInstructions
+                            |> List.map (Task.send << PrependInstruction)
+                            |> Cmd.batch
+                        )
 
                     else
                         ( Ok world, Cmd.none )
 
                 While function nestedInstructions ->
                     if executeFunction function (Ok world) then
-                        let
-                            cmd =
-                                nestedInstructions
-                                    |> List.map (Task.send << PrependInstruction)
-                                    |> Cmd.batch
-                        in
                         ( Ok world
                         , Cmd.batch
-                            [ cmd
+                            [ nestedInstructions
+                                |> List.map (Task.send << PrependInstruction)
+                                |> Cmd.batch
                             , Task.send (PrependInstruction (While function nestedInstructions))
                             ]
                         )
@@ -164,7 +155,7 @@ executeFunction : Function -> Result Error World -> Bool
 executeFunction function maybeWorld =
     maybeWorld
         |> Result.map
-            (\world ->
+            (\_ ->
                 case function of
                     Not nestedFunction ->
                         not (executeFunction nestedFunction maybeWorld)
@@ -181,14 +172,14 @@ executionsLimit =
 
 
 checkExecutionsLimit : Result Error World -> Result Error World
-checkExecutionsLimit world =
-    case world of
+checkExecutionsLimit maybeWorld =
+    case maybeWorld of
         Ok { executions } ->
             if executions >= executionsLimit then
                 Err ExecutionLimitReached
 
             else
-                world
+                maybeWorld
 
         err ->
             err
