@@ -1,10 +1,9 @@
-port module Ports
-    exposing
-        ( InfoForElm(..)
-        , getInfoFromOutside
-        , InfoForOutside(..)
-        , sendInfoOutside
-        )
+port module Ports exposing
+    ( InfoForElm(..)
+    , InfoForOutside(..)
+    , getInfoFromOutside
+    , sendInfoOutside
+    )
 
 import Command exposing (Command(..))
 import Json.Decode as JD
@@ -51,10 +50,10 @@ decodeInfoFromOutside tagger onError outsideInfo =
                     tagger <| CommandCalled command
 
                 Err err ->
-                    onError err
+                    onError (JD.errorToString err)
 
         _ ->
-            onError <| "Unexpected info from outside: " ++ toString outsideInfo
+            onError <| "Unexpected info from outside: " ++ Debug.toString outsideInfo
 
 
 type alias GenericOutsideData =

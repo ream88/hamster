@@ -1,6 +1,5 @@
-module Main exposing (..)
-
-import Array.Hamt as Array exposing (Array)
+import Array exposing (Array)
+import Browser
 import Command exposing (Command(..))
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
@@ -9,22 +8,22 @@ import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
 import Ports exposing (InfoForElm(..), InfoForOutside(..))
 import Positive
-import Time exposing (Time)
-import World exposing (World, Tile(..), Direction(..), Error(..))
+import Time
+import World exposing (Direction(..), Error(..), Tile(..), World)
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
+    Browser.element
         { init = init
         , update = update
-        , view = view
+        , view = view >> toUnstyled
         , subscriptions = subscriptions
         }
 
 
 type alias Model =
-    { world : World
+    { world : Result Error World
     , queue : List Command
     , error : Maybe Error
     , running : Bool
@@ -33,8 +32,8 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : () -> ( Model, Cmd Msg )
+init _ =
     ( { world =
             World.init (Positive.fromInt 32) (Positive.fromInt 16)
                 |> World.buildWalls
@@ -54,7 +53,7 @@ type Msg
     | OutsideError String
     | Enqueue Command
     | Toggle
-    | SetInterval (Result String Float)
+    | SetInterval (Maybe Float)
     | Tick
     | SetCode String
     | Run
@@ -77,10 +76,10 @@ update msg model =
         Toggle ->
             ( { model | running = not model.running }, Cmd.none )
 
-        SetInterval (Ok interval) ->
+        SetInterval (Just interval) ->
             ( { model | interval = interval }, Cmd.none )
 
-        SetInterval (Err _) ->
+        SetInterval Nothing ->
             ( model, Cmd.none )
 
         SetCode code ->
@@ -93,44 +92,45 @@ update msg model =
             let
                 ( command, newQueue, newRunning ) =
                     case model.queue of
-                        command :: tail ->
-                            ( command, tail, model.running )
+                        head :: tail ->
+                            ( head, tail, model.running )
 
                         _ ->
                             ( Idle, [], False )
             in
-                case executeCommand command model.world of
-                    Ok newWorld ->
-                        ( { model
-                            | world = newWorld
-                            , queue = newQueue
-                            , error = Nothing
-                            , running = newRunning
-                          }
-                        , Cmd.none
-                        )
+            case executeCommand command model.world of
+                Ok newWorld ->
+                    ( { model
+                        | world = Ok newWorld
+                        , queue = newQueue
+                        , error = Nothing
+                        , running = newRunning
+                      }
+                    , Cmd.none
+                    )
 
-                    Err err ->
-                        ( { model
-                            | error = Just err
-                            , running = False
-                          }
-                        , Cmd.none
-                        )
+                Err err ->
+                    ( { model
+                        | error = Just err
+                        , running = False
+                      }
+                    , Cmd.none
+                    )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ if model.running then
-            Time.every ((1000 - model.interval) * Time.millisecond) (always Tick)
+            Time.every (1000 - model.interval) (always Tick)
+
           else
             Sub.none
         , Ports.getInfoFromOutside OutsideInfo OutsideError
         ]
 
 
-executeCommand : Command -> World -> Result Error World
+executeCommand : Command -> Result Error World -> Result Error World
 executeCommand command world =
     case command of
         Go ->
@@ -140,7 +140,7 @@ executeCommand command world =
             World.rotateHamster world
 
         Idle ->
-            Ok world
+            world
 
 
 view : Model -> Html Msg
@@ -180,34 +180,39 @@ view model =
                 , Css.property "grid-row" "span 2"
                 ]
             ]
-            [ viewControls model, text <| toString <| model.error ]
+            [ viewControls model, text <| Debug.toString <| model.error ]
         ]
 
 
-viewWorld : World -> Html Msg
-viewWorld world =
-    world
-        |> Array.indexedMap
-            (\y row ->
-                row
-                    |> Array.indexedMap (\x -> lazyViewTile x y)
+viewWorld : Result Error World -> Html Msg
+viewWorld maybeWorld =
+    maybeWorld
+        |> Result.map
+            (\world ->
+                world
+                    |> Array.indexedMap
+                        (\y row ->
+                            row
+                                |> Array.indexedMap (\x -> lazyViewTile x y)
+                                |> Array.toList
+                        )
                     |> Array.toList
+                    |> List.foldr (++) []
+                    |> div
+                        [ css
+                            [ Css.property "display" "grid"
+                            , Css.property "grid-template-columns" ("repeat(" ++ (String.fromInt <| World.width maybeWorld) ++ ", 1fr)")
+                            , Css.property "grid-template-rows" ("repeat(" ++ (String.fromInt <| World.height maybeWorld) ++ ", 1fr)")
+                            , maxWidth (px <| toFloat <| World.width maybeWorld * 32)
+                            ]
+                        ]
             )
-        |> Array.toList
-        |> List.foldr (++) []
-        |> div
-            [ css
-                [ Css.property "display" "grid"
-                , Css.property "grid-template-columns" ("repeat(" ++ (toString <| World.width world) ++ ", 1fr)")
-                , Css.property "grid-template-rows" ("repeat(" ++ (toString <| World.height world) ++ ", 1fr)")
-                , maxWidth (px <| toFloat <| World.width world * 32)
-                ]
-            ]
+        |> Result.withDefault (text "The world is broken!")
 
 
 lazyViewTile : Int -> Int -> Tile -> Html Msg
 lazyViewTile x y tile =
-    lazy3 (\x y -> toUnstyled << viewTile x y) x y tile
+    lazy3 viewTile x y tile
 
 
 viewTile : Int -> Int -> Tile -> Html Msg
@@ -226,8 +231,8 @@ viewTile x y tile =
 
                 Hamster direction ->
                     let
-                        directionToDeg direction =
-                            case direction of
+                        directionToDeg direction_ =
+                            case direction_ of
                                 North ->
                                     180
 
@@ -240,26 +245,26 @@ viewTile x y tile =
                                 West ->
                                     90
                     in
-                        batch
-                            [ backgroundImage (url "assets/hamster.png")
-                            , direction
-                                |> directionToDeg
-                                |> deg
-                                |> rotate
-                                |> transform
-                            , border
-                            ]
+                    batch
+                        [ backgroundImage (url "assets/hamster.png")
+                        , direction
+                            |> directionToDeg
+                            |> deg
+                            |> rotate
+                            |> transform
+                        , border
+                        ]
     in
-        span
-            [ css
-                [ Css.width (px 32)
-                , Css.height (px 32)
-                , backgroundSize (pct 100)
-                , backgroundImage_
-                ]
-            , title ("x: " ++ toString x ++ " y: " ++ toString y)
+    span
+        [ css
+            [ Css.width (px 32)
+            , Css.height (px 32)
+            , backgroundSize (pct 100)
+            , backgroundImage_
             ]
-            []
+        , title ("x: " ++ String.fromInt x ++ " y: " ++ String.fromInt y)
+        ]
+        []
 
 
 viewControls : Model -> Html Msg
@@ -271,6 +276,7 @@ viewControls { queue, running, interval } =
         , button [ onClick Toggle ]
             [ if running then
                 text "Stop"
+
               else
                 text "Start"
             ]
@@ -281,10 +287,10 @@ viewControls { queue, running, interval } =
             , Attributes.min "0"
             , Attributes.max "900"
             , step "300"
-            , value (toString interval)
+            , value (String.fromFloat interval)
             ]
             []
         , queue
-            |> List.map (\command -> li [] [ text <| toString command ])
+            |> List.map (\command -> li [] [ text <| Debug.toString <| command ])
             |> ul []
         ]

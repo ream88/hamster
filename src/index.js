@@ -1,6 +1,9 @@
-import Elm from './Main.elm'
+import { Elm } from './Main.elm'
 
-const app = Elm.Main.fullscreen()
+const app = Elm.Main.init({
+  node: document.querySelector('main'),
+  flags: {}
+})
 
 app.ports.infoForOutside.subscribe((msg) => {
   switch (msg.tag) {
@@ -18,9 +21,9 @@ app.ports.infoForOutside.subscribe((msg) => {
 })
 
 function vor () {
-  app.ports.infoForElm.send({tag: 'CommandCalled', data: 'Go'})
+  app.ports.infoForElm.send({ tag: 'CommandCalled', data: 'Go' })
 }
 
 function linksUm () {
-  app.ports.infoForElm.send({tag: 'CommandCalled', data: 'RotateLeft'})
+  app.ports.infoForElm.send({ tag: 'CommandCalled', data: 'RotateLeft' })
 }

@@ -9,5 +9,6 @@ fromInt : Int -> Positive
 fromInt int =
     if int > 0 then
         Just int
+
     else
         Nothing

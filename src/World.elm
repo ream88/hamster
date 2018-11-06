@@ -1,22 +1,21 @@
-module World
-    exposing
-        ( World
-        , Tile(..)
-        , Direction(..)
-        , Error(..)
-        , init
-        , width
-        , height
-        , buildWalls
-        , get
-        , set
-        , findHamster
-        , isHamster
-        , moveHamster
-        , rotateHamster
-        )
+module World exposing
+    ( Direction(..)
+    , Error(..)
+    , Tile(..)
+    , World
+    , buildWalls
+    , findHamster
+    , get
+    , height
+    , init
+    , isHamster
+    , moveHamster
+    , rotateHamster
+    , set
+    , width
+    )
 
-import Array.Hamt as Array exposing (Array)
+import Array exposing (Array)
 import Maybe.Extra as Maybe
 import Positive exposing (Positive)
 
@@ -42,100 +41,128 @@ type Error
     = NoHamster
     | Collision
     | OutOfWorld
+    | InvalidSize
 
 
-init : Positive -> Positive -> World
-init width height =
-    case ( width, height ) of
-        ( Just width, Just height ) ->
+init : Positive -> Positive -> Result Error World
+init maybeWidth maybeHeight =
+    case ( maybeWidth, maybeHeight ) of
+        ( Just positiveWidth, Just positiveHeight ) ->
             Empty
                 |> always
-                |> Array.initialize width
+                |> Array.initialize positiveWidth
                 |> always
-                |> Array.initialize height
+                |> Array.initialize positiveHeight
+                |> Ok
 
         _ ->
-            Debug.crash "Please provide only positive width and height"
+            Err InvalidSize
 
 
-buildWalls : World -> World
-buildWalls model =
+buildWalls : Result Error World -> Result Error World
+buildWalls maybeWorld =
     let
         height_ =
-            height model - 1
+            height maybeWorld - 1
 
         width_ =
-            width model - 1
+            width maybeWorld - 1
     in
-        model
-            |> Array.indexedMap
-                (\y ->
-                    Array.indexedMap
-                        (\x tile ->
-                            if y == 0 || y == height_ then
-                                Wall
-                            else if x == 0 || x == width_ then
-                                Wall
-                            else
-                                tile
+    maybeWorld
+        |> Result.map
+            (\world ->
+                world
+                    |> Array.indexedMap
+                        (\y ->
+                            Array.indexedMap
+                                (\x tile ->
+                                    if y == 0 || y == height_ then
+                                        Wall
+
+                                    else if x == 0 || x == width_ then
+                                        Wall
+
+                                    else
+                                        tile
+                                )
                         )
-                )
+            )
 
 
-height : World -> Int
-height =
-    Array.length
+height : Result Error World -> Int
+height maybeWorld =
+    maybeWorld
+        |> Result.map Array.length
+        |> Result.withDefault 0
 
 
-width : World -> Int
-width model =
-    model |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
+width : Result Error World -> Int
+width maybeWorld =
+    maybeWorld
+        |> Result.map
+            (\world ->
+                world |> Array.get 0 |> Maybe.withDefault Array.empty |> Array.length
+            )
+        |> Result.withDefault 0
 
 
-set : Int -> Int -> Tile -> World -> World
-set x y tile world =
-    let
-        row =
+set : Int -> Int -> Tile -> Result Error World -> Result Error World
+set x y tile =
+    Result.map
+        (\world ->
+            let
+                row =
+                    world
+                        |> Array.get y
+                        |> Maybe.withDefault Array.empty
+                        |> Array.set x tile
+            in
             world
-                |> Array.get y
-                |> Maybe.withDefault Array.empty
-                |> Array.set x tile
-    in
-        world
-            |> Array.set y row
+                |> Array.set y row
+        )
 
 
-get : Int -> Int -> World -> Maybe Tile
-get x y world =
-    world
-        |> Array.get y
-        |> Maybe.withDefault Array.empty
-        |> Array.get x
+get : Int -> Int -> Result Error World -> Maybe Tile
+get x y maybeWorld =
+    maybeWorld
+        |> Result.map
+            (\world ->
+                world
+                    |> Array.get y
+                    |> Maybe.withDefault Array.empty
+                    |> Array.get x
+            )
+        |> Result.withDefault Nothing
 
 
-findHamster : World -> Maybe ( Int, Int, Tile )
-findHamster world =
-    case
-        world
-            |> Array.toList
-            |> List.map (Array.toList >> index isHamster)
-            |> List.indexedMap (\y -> Maybe.map (\x -> ( x, y )))
-            |> List.filter Maybe.isJust
-            |> List.head
-            |> Maybe.withDefault Nothing
-    of
-        Just ( x, y ) ->
-            world
-                |> get x y
-                |> Maybe.map (\tile -> ( x, y, tile ))
+findHamster : Result Error World -> Maybe ( Int, Int, Tile )
+findHamster maybeWorld =
+    maybeWorld
+        |> Result.map
+            (\world ->
+                case
+                    world
+                        |> Array.toList
+                        |> List.map (Array.toList >> index isHamster)
+                        |> List.indexedMap (\y -> Maybe.map (\x -> ( x, y )))
+                        |> List.filter Maybe.isJust
+                        |> List.head
+                        |> Maybe.withDefault Nothing
+                of
+                    Just ( x, y ) ->
+                        maybeWorld
+                            |> get x y
+                            |> Maybe.map (\tile -> ( x, y, tile ))
 
-        Nothing ->
-            Nothing
+                    Nothing ->
+                        Nothing
+            )
+        |> Result.withDefault Nothing
 
 
-moveHamster : World -> Result Error World
-moveHamster world =
-    case findHamster world of
+moveHamster : Result Error World -> Result Error World
+moveHamster maybeWorld =
+    case findHamster maybeWorld of
         Just ( x, y, Hamster direction ) ->
             let
                 ( newX, newY ) =
@@ -152,26 +179,25 @@ moveHamster world =
                         West ->
                             ( x - 1, y )
             in
-                case get newX newY world of
-                    Just Wall ->
-                        Err Collision
+            case get newX newY maybeWorld of
+                Just Wall ->
+                    Err Collision
 
-                    Nothing ->
-                        Err OutOfWorld
+                Nothing ->
+                    Err OutOfWorld
 
-                    _ ->
-                        world
-                            |> set x y Empty
-                            |> set newX newY (Hamster direction)
-                            |> Ok
+                _ ->
+                    maybeWorld
+                        |> set x y Empty
+                        |> set newX newY (Hamster direction)
 
         _ ->
             Err NoHamster
 
 
-rotateHamster : World -> Result Error World
-rotateHamster world =
-    case findHamster world of
+rotateHamster : Result Error World -> Result Error World
+rotateHamster maybeWorld =
+    case findHamster maybeWorld of
         Just ( x, y, Hamster direction ) ->
             let
                 newDirection =
@@ -188,9 +214,8 @@ rotateHamster world =
                         West ->
                             South
             in
-                world
-                    |> set x y (Hamster newDirection)
-                    |> Ok
+            maybeWorld
+                |> set x y (Hamster newDirection)
 
         _ ->
             Err NoHamster
@@ -202,16 +227,17 @@ index =
 
 
 indexHelp : Int -> (a -> Bool) -> List a -> Maybe Int
-indexHelp index fn list =
+indexHelp index_ fn list =
     case list of
         [] ->
             Nothing
 
         head :: tail ->
             if fn head then
-                Just index
+                Just index_
+
             else
-                indexHelp (index + 1) fn tail
+                indexHelp (index_ + 1) fn tail
 
 
 isHamster : Tile -> Bool
