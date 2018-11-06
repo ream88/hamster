@@ -6,53 +6,129 @@ import Parser exposing (..)
 type Instruction
     = Go
     | RotateLeft
-    | Block (List Instruction)
-    | If Function Instruction
-    | While Function Instruction
+    | If Function (List Instruction)
+    | While Function (List Instruction)
 
 
 type Function
     = Not Function
-    | NotBlocked
+    | Free
 
 
 parser : Parser (List Instruction)
 parser =
-    loop [] instructionsParser
+    instructionsParser
 
 
-instructionsParser : List Instruction -> Parser (Step (List Instruction) (List Instruction))
-instructionsParser instructions =
+instructionsParser : Parser (List Instruction)
+instructionsParser =
+    loop [] instructionsParserHelper
+
+
+next : List Instruction -> Instruction -> Step (List Instruction) a
+next instructions instruction =
+    Loop (instruction :: instructions)
+
+
+done instructions =
+    Done (List.reverse instructions)
+
+
+instructionsParserHelper : List Instruction -> Parser (Step (List Instruction) (List Instruction))
+instructionsParserHelper instructions =
     oneOf
-        [ succeed (\instruction -> Loop (instruction :: instructions))
+        [ succeed (next instructions)
+            |. spaces
+            |= ifParser
+            |. spaces
+        , succeed (next instructions)
+            |. spaces
+            |= whileParser
+            |. spaces
+        , succeed (next instructions)
             |. spaces
             |= goParser
             |. spaces
             |. symbol ";"
             |. spaces
-        , succeed
-            (\instruction -> Loop (instruction :: instructions))
+        , succeed (next instructions)
             |. spaces
             |= rotateLeftParser
             |. spaces
             |. symbol ";"
             |. spaces
-        , succeed ()
-            |> map (\_ -> Done (List.reverse instructions))
+        , succeed (done instructions)
         ]
 
 
 goParser : Parser Instruction
 goParser =
-    succeed (always Go)
-        |= keyword "go"
+    succeed Go
+        |. keyword "go"
         |. symbol "("
         |. symbol ")"
 
 
 rotateLeftParser : Parser Instruction
 rotateLeftParser =
-    succeed (always RotateLeft)
-        |= keyword "rotateLeft"
+    succeed RotateLeft
+        |. keyword "rotateLeft"
         |. symbol "("
+        |. symbol ")"
+
+
+ifParser : Parser Instruction
+ifParser =
+    succeed If
+        |. keyword "if"
+        |. spaces
+        |. symbol "("
+        |= functionParser
+        |. symbol ")"
+        |. spaces
+        |. symbol "{"
+        |. spaces
+        |= parser
+        |. spaces
+        |. symbol "}"
+
+
+whileParser : Parser Instruction
+whileParser =
+    succeed While
+        |. keyword "while"
+        |. spaces
+        |. symbol "("
+        |= functionParser
+        |. symbol ")"
+        |. spaces
+        |. symbol "{"
+        |. spaces
+        |= parser
+        |. spaces
+        |. symbol "}"
+
+
+functionParser : Parser Function
+functionParser =
+    oneOf
+        [ freeParser
+        , lazy (\_ -> notParser)
+        ]
+
+
+freeParser : Parser Function
+freeParser =
+    succeed Free
+        |. keyword "free"
+        |. symbol "("
+        |. symbol ")"
+
+
+notParser : Parser Function
+notParser =
+    succeed Not
+        |. keyword "not"
+        |. symbol "("
+        |= lazy (\_ -> functionParser)
         |. symbol ")"

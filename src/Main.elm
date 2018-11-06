@@ -125,22 +125,31 @@ executeInstruction instruction maybeWorld =
                 RotateLeft ->
                     ( World.rotateHamster (Ok world), Cmd.none )
 
-                Block instructions ->
-                    ( Ok world, instructions |> List.map (Task.send << PrependInstruction) |> Cmd.batch )
-
-                If function nestedInstruction ->
+                If function nestedInstructions ->
                     if executeFunction function (Ok world) then
-                        ( Ok world, Task.send (PrependInstruction nestedInstruction) )
+                        let
+                            cmd =
+                                nestedInstructions
+                                    |> List.map (Task.send << PrependInstruction)
+                                    |> Cmd.batch
+                        in
+                        ( Ok world, cmd )
 
                     else
                         ( Ok world, Cmd.none )
 
-                While function nestedInstruction ->
+                While function nestedInstructions ->
                     if executeFunction function (Ok world) then
+                        let
+                            cmd =
+                                nestedInstructions
+                                    |> List.map (Task.send << PrependInstruction)
+                                    |> Cmd.batch
+                        in
                         ( Ok world
                         , Cmd.batch
-                            [ Task.send (PrependInstruction nestedInstruction)
-                            , Task.send (PrependInstruction (While function nestedInstruction))
+                            [ cmd
+                            , Task.send (PrependInstruction (While function nestedInstructions))
                             ]
                         )
 
@@ -160,7 +169,7 @@ executeFunction function maybeWorld =
                     Not nestedFunction ->
                         not (executeFunction nestedFunction maybeWorld)
 
-                    NotBlocked ->
+                    Free ->
                         World.isBlocked maybeWorld
             )
         |> Result.withDefault False
@@ -318,11 +327,10 @@ viewControls : Model -> Html Msg
 viewControls model =
     div []
         [ button [ onClick <| AppendInstruction Go ] [ text "Go" ]
-        , button [ onClick <| AppendInstruction <| Block [ Go, Go, Go, Go, Go ] ] [ text "Go 5x times" ]
         , button [ onClick <| AppendInstruction RotateLeft ] [ text "Rotate Left" ]
-        , button [ onClick <| AppendInstruction <| If NotBlocked Go ] [ text "Go if NotBlocked" ]
-        , button [ onClick <| AppendInstruction <| While NotBlocked Go ] [ text "Go while NotBlocked" ]
-        , button [ onClick <| AppendInstruction <| While NotBlocked (Block [ While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft, While NotBlocked Go, RotateLeft ]) ] [ text "ParseCode in circle forever" ]
+        , button [ onClick <| AppendInstruction <| If Free [ Go ] ] [ text "Go if Free" ]
+        , button [ onClick <| AppendInstruction <| While Free [ Go ] ] [ text "Go while Free" ]
+        , button [ onClick <| AppendInstruction <| While Free [ While Free [ Go ], RotateLeft ] ] [ text "Run forever in circle" ]
         , button [ onClick Tick ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if model.running then
