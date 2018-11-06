@@ -58,6 +58,7 @@ type Msg
     | Tick
     | SetCode String
     | ParseCode
+    | Reset
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -83,6 +84,18 @@ update msg model =
 
         ParseCode ->
             ( { model | instructions = Parser.run Instructions.parser model.code }, Cmd.none )
+
+        Reset ->
+            ( { model
+                | running = False
+                , instructions = Parser.run Instructions.parser model.code
+                , world =
+                    World.init (Positive.fromInt 32) (Positive.fromInt 16)
+                        |> World.buildWalls
+                        |> World.set 1 1 (Hamster South)
+              }
+            , Cmd.none
+            )
 
         Tick ->
             model.world
@@ -332,6 +345,7 @@ viewControls model =
                 text "Start"
             ]
         , button [ onClick ParseCode ] [ text "Parse Code" ]
+        , button [ onClick Reset ] [ text "Reset" ]
         , input
             [ type_ "range"
             , onInput (SetInterval << String.toFloat)
