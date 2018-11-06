@@ -94,7 +94,7 @@ update msg model =
                                     ( newWorld, cmd ) =
                                         executeInstruction instruction model.world
 
-                                    newParseCodening =
+                                    newRunning =
                                         case newWorld of
                                             Err _ ->
                                                 False
@@ -102,7 +102,7 @@ update msg model =
                                             _ ->
                                                 model.running
                                 in
-                                ( { model | world = newWorld, running = newParseCodening, instructions = Ok newInstructions }, cmd )
+                                ( { model | world = newWorld, running = newRunning, instructions = Ok newInstructions }, cmd )
 
                             _ ->
                                 ( { model | running = False }, Cmd.none )
