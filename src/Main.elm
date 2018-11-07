@@ -7,7 +7,7 @@ import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
-import Instructions exposing (Function(..), Instruction(..), parser)
+import Instructions exposing (Function, Instruction(..), parser)
 import Parser
 import Positive
 import Task
@@ -175,10 +175,16 @@ executeFunction function maybeWorld =
         |> Result.map
             (\_ ->
                 case function of
-                    Not nestedFunction ->
+                    Instructions.True ->
+                        True
+
+                    Instructions.False ->
+                        False
+
+                    Instructions.Not nestedFunction ->
                         not (executeFunction nestedFunction maybeWorld)
 
-                    Free ->
+                    Instructions.Free ->
                         World.isBlocked maybeWorld
             )
         |> Result.withDefault False
@@ -355,9 +361,9 @@ viewControls model =
     div []
         [ button [ onClick <| AppendInstruction Go ] [ text "Go" ]
         , button [ onClick <| AppendInstruction RotateLeft ] [ text "Rotate Left" ]
-        , button [ onClick <| AppendInstruction <| If Free [ Go ] ] [ text "Go if Free" ]
-        , button [ onClick <| AppendInstruction <| While Free [ Go ] ] [ text "Go while Free" ]
-        , button [ onClick <| AppendInstruction <| While Free [ While Free [ Go ], RotateLeft ] ] [ text "Run forever in circle" ]
+        , button [ onClick <| AppendInstruction <| If Instructions.Free [ Go ] ] [ text "Go if Free" ]
+        , button [ onClick <| AppendInstruction <| While Instructions.Free [ Go ] ] [ text "Go while Free" ]
+        , button [ onClick <| AppendInstruction <| While Instructions.Free [ While Instructions.Free [ Go ], RotateLeft ] ] [ text "Run forever in circle" ]
         , button [ onClick Tick ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if model.running then

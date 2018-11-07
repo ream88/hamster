@@ -10,11 +10,6 @@ type Instruction
     | While Function (List Instruction)
 
 
-type Function
-    = Not Function
-    | Free
-
-
 parser : Parser (List Instruction)
 parser =
     instructionsParser
@@ -113,20 +108,28 @@ whileParser =
         |. symbol "}"
 
 
+type Function
+    = True
+    | False
+    | Not Function
+    | Free
+
+
 functionParser : Parser Function
 functionParser =
     oneOf
-        [ freeParser
+        [ boolParser
         , lazy (\_ -> notParser)
+        , freeParser
         ]
 
 
-freeParser : Parser Function
-freeParser =
-    succeed Free
-        |. keyword "free"
-        |. symbol "("
-        |. symbol ")"
+boolParser : Parser Function
+boolParser =
+    oneOf
+        [ succeed True |. keyword "true"
+        , succeed False |. keyword "false"
+        ]
 
 
 notParser : Parser Function
@@ -135,4 +138,12 @@ notParser =
         |. keyword "not"
         |. symbol "("
         |= lazy (\_ -> functionParser)
+        |. symbol ")"
+
+
+freeParser : Parser Function
+freeParser =
+    succeed Free
+        |. keyword "free"
+        |. symbol "("
         |. symbol ")"
