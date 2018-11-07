@@ -59,6 +59,7 @@ type Msg
     | SetCode String
     | ParseCode
     | Reset
+    | SetTile Int Int Tile
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -118,6 +119,9 @@ update msg model =
                                 ( { model | running = False }, Cmd.none )
                     )
                 |> Result.withDefault ( model, Cmd.none )
+
+        SetTile x y tile ->
+            ( { model | world = World.set x y tile model.world }, Cmd.none )
 
 
 executeInstruction : Instruction -> Result Error World -> ( Result Error World, Cmd Msg )
@@ -315,6 +319,17 @@ viewTile x y tile =
                             |> transform
                         , border
                         ]
+
+        changeTile =
+            case tile of
+                Empty ->
+                    SetTile x y Wall
+
+                Wall ->
+                    SetTile x y Empty
+
+                Hamster _ ->
+                    SetTile x y tile
     in
     span
         [ css
@@ -324,6 +339,7 @@ viewTile x y tile =
             , backgroundImage_
             ]
         , title ("x: " ++ String.fromInt x ++ " y: " ++ String.fromInt y)
+        , onClick changeTile
         ]
         []
 
