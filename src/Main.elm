@@ -1,7 +1,7 @@
 module Main exposing (Model, Msg(..), init, lazyViewTile, main, subscriptions, update, view, viewControls, viewTile, viewWorld)
 
 import Array exposing (Array)
-import Browser
+import Browser exposing (Document)
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
@@ -18,10 +18,10 @@ import World exposing (Direction(..), Error(..), Tile(..), World)
 
 main : Program () Model Msg
 main =
-    Browser.element
+    Browser.document
         { init = init
         , update = update
-        , view = view >> toUnstyled
+        , view = documentView
         , subscriptions = subscriptions
         }
 
@@ -37,10 +37,7 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { world =
-            World.init (Positive.fromInt 32) (Positive.fromInt 16)
-                |> World.buildWalls
-                |> World.set 1 1 (Hamster South)
+    ( { world = initialWorld
       , instructions = Ok []
       , running = False
       , interval = 750
@@ -48,6 +45,13 @@ init _ =
       }
     , Cmd.none
     )
+
+
+initialWorld : Result Error World
+initialWorld =
+    World.init (Positive.fromInt 32) (Positive.fromInt 16)
+        |> World.buildWalls
+        |> World.set 1 14 (Hamster East)
 
 
 type Msg
@@ -90,10 +94,7 @@ update msg model =
             ( { model
                 | running = False
                 , instructions = Parser.run Instructions.parser model.code
-                , world =
-                    World.init (Positive.fromInt 32) (Positive.fromInt 16)
-                        |> World.buildWalls
-                        |> World.set 1 1 (Hamster South)
+                , world = initialWorld
               }
             , Cmd.none
             )
@@ -205,6 +206,11 @@ checkExecutionsLimit maybeWorld =
 increaseExecutions : Result Error World -> Result Error World
 increaseExecutions =
     Result.map (\world -> { world | executions = world.executions + 1 })
+
+
+documentView : Model -> Document Msg
+documentView model =
+    Document "Hamster" [ toUnstyled (view model) ]
 
 
 view : Model -> Html Msg
@@ -338,7 +344,7 @@ viewTile x y tile =
             , backgroundSize (pct 100)
             , backgroundImage_
             ]
-        , title ("x: " ++ String.fromInt x ++ " y: " ++ String.fromInt y)
+        , title ("( " ++ String.fromInt x ++ ", " ++ String.fromInt y ++ " )")
         , onClick changeTile
         ]
         []
