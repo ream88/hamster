@@ -83,12 +83,14 @@ ifParser =
         |. keyword "if"
         |. spaces
         |. symbol "("
+        |. spaces
         |= functionParser
+        |. spaces
         |. symbol ")"
         |. spaces
         |. symbol "{"
         |. spaces
-        |= parser
+        |= instructionsParser
         |. spaces
         |. symbol "}"
 
@@ -99,12 +101,14 @@ whileParser =
         |. keyword "while"
         |. spaces
         |. symbol "("
+        |. spaces
         |= functionParser
+        |. spaces
         |. symbol ")"
         |. spaces
         |. symbol "{"
         |. spaces
-        |= parser
+        |= instructionsParser
         |. spaces
         |. symbol "}"
 
