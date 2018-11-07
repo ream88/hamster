@@ -190,23 +190,21 @@ executeFunction function maybeWorld =
         |> Result.withDefault False
 
 
-executionsLimit : Int
-executionsLimit =
-    1000
-
-
 checkExecutionsLimit : Result Error World -> Result Error World
 checkExecutionsLimit maybeWorld =
-    case maybeWorld of
-        Ok { executions } ->
-            if executions >= executionsLimit then
-                Err ExecutionLimitReached
+    let
+        executionsLimit =
+            1000
+    in
+    maybeWorld
+        |> Result.andThen
+            (\{ executions } ->
+                if executions >= executionsLimit then
+                    Err ExecutionLimitReached
 
-            else
-                maybeWorld
-
-        err ->
-            err
+                else
+                    maybeWorld
+            )
 
 
 increaseExecutions : Result Error World -> Result Error World

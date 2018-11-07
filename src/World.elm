@@ -101,7 +101,7 @@ buildWalls maybeWorld =
 height : Result Error World -> Int
 height maybeWorld =
     maybeWorld
-        |> Result.map (Array.length << .tiles)
+        |> Result.map (.tiles >> Array.length)
         |> Result.withDefault 0
 
 
