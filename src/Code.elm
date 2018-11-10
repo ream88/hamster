@@ -1,4 +1,4 @@
-module Instructions exposing (Function(..), Instruction(..), parser)
+module Code exposing (Function(..), Instruction(..), parser)
 
 import Parser exposing (..)
 

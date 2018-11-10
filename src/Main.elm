@@ -1,13 +1,13 @@
-module Main exposing (Model, Msg(..), init, lazyViewTile, main, subscriptions, update, view, viewControls, viewTile, viewWorld)
+module Main exposing (Model, Msg(..), checkExecutionsLimit, documentView, executeFunction, executeInstruction, increaseExecutions, init, initialWorld, lazyViewTile, main, subscriptions, update, view, viewControls, viewTile, viewWorld)
 
 import Array exposing (Array)
 import Browser exposing (Document)
+import Code exposing (Function, Instruction(..), parser)
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
-import Instructions exposing (Function, Instruction(..), parser)
 import Parser
 import Positive
 import Task
@@ -88,12 +88,12 @@ update msg model =
             ( { model | code = code }, Cmd.none )
 
         ParseCode ->
-            ( { model | instructions = Parser.run Instructions.parser model.code }, Cmd.none )
+            ( { model | instructions = Parser.run Code.parser model.code }, Cmd.none )
 
         Reset ->
             ( { model
                 | running = False
-                , instructions = Parser.run Instructions.parser model.code
+                , instructions = Parser.run Code.parser model.code
                 , world = initialWorld
               }
             , Cmd.none
@@ -175,16 +175,16 @@ executeFunction function maybeWorld =
         |> Result.map
             (\_ ->
                 case function of
-                    Instructions.True ->
+                    Code.True ->
                         True
 
-                    Instructions.False ->
+                    Code.False ->
                         False
 
-                    Instructions.Not nestedFunction ->
+                    Code.Not nestedFunction ->
                         not (executeFunction nestedFunction maybeWorld)
 
-                    Instructions.Free ->
+                    Code.Free ->
                         World.isBlocked maybeWorld
             )
         |> Result.withDefault False
@@ -359,9 +359,9 @@ viewControls model =
     div []
         [ button [ onClick <| AppendInstruction Go ] [ text "Go" ]
         , button [ onClick <| AppendInstruction RotateLeft ] [ text "Rotate Left" ]
-        , button [ onClick <| AppendInstruction <| If Instructions.Free [ Go ] ] [ text "Go if Free" ]
-        , button [ onClick <| AppendInstruction <| While Instructions.Free [ Go ] ] [ text "Go while Free" ]
-        , button [ onClick <| AppendInstruction <| While Instructions.Free [ While Instructions.Free [ Go ], RotateLeft ] ] [ text "Run forever in circle" ]
+        , button [ onClick <| AppendInstruction <| If Code.Free [ Go ] ] [ text "Go if Free" ]
+        , button [ onClick <| AppendInstruction <| While Code.Free [ Go ] ] [ text "Go while Free" ]
+        , button [ onClick <| AppendInstruction <| While Code.Free [ While Code.Free [ Go ], RotateLeft ] ] [ text "Run forever in circle" ]
         , button [ onClick Tick ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if model.running then
