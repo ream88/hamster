@@ -1,4 +1,4 @@
-module WorldTest exposing (isOk, isWall, positive, worldTests)
+module WorldTest exposing (tests)
 
 import Array exposing (Array)
 import Expect exposing (Expectation)
@@ -8,30 +8,47 @@ import Test exposing (..)
 import World exposing (Direction(..), Tile(..), World)
 
 
-worldTests : Test
-worldTests =
+tests : Test
+tests =
+    describe "World"
+        [ initTests
+        , buildWallsTests
+        , findHamsterTests
+        , rotateHamsterTests
+        , moveHamsterTests
+        ]
+
+
+initTests : Test
+initTests =
     describe "init"
-        [ fuzz2 positive positive "Always returns width * height tiles" <|
+        [ fuzz2 positive positive "always returns width * height tiles" <|
             \width height ->
                 World.init (fromInt width) (fromInt height)
                     |> Result.map (\world -> Array.map Array.length world.tiles)
                     |> Result.withDefault Array.empty
                     |> Array.foldl (+) 0
                     |> Expect.equal (width * height)
-        , fuzz2 positive positive "Always generates a world with proper height" <|
+        , fuzz2 positive positive "always generates a world with proper height" <|
             \width height ->
                 World.init (fromInt width) (fromInt height)
                     |> Result.map (\world -> Array.length world.tiles)
                     |> Result.withDefault 0
                     |> Expect.equal height
-        , fuzz2 positive positive "Always generates a world with proper width" <|
+        , fuzz2 positive positive "always generates a world with proper width" <|
             \width height ->
                 World.init (fromInt width) (fromInt height)
                     |> Result.map (\world -> world.tiles |> Array.get 0 |> Maybe.withDefault Array.empty)
                     |> Result.withDefault Array.empty
                     |> Array.length
                     |> Expect.equal width
-        , fuzz2 positive positive "Always surrounds the world with walls" <|
+        ]
+
+
+buildWallsTests : Test
+buildWallsTests =
+    describe "buildWalls"
+        [ fuzz2 positive positive "always surrounds the world with walls" <|
             \width height ->
                 let
                     hasTopWall world =
@@ -40,7 +57,7 @@ worldTests =
                             |> Result.withDefault Array.empty
                             |> Array.toList
                             |> List.all isWall
-                            |> Expect.true "Has top wall"
+                            |> Expect.equal True
 
                     hasRightWall world =
                         world
@@ -48,7 +65,7 @@ worldTests =
                             |> Result.withDefault Array.empty
                             |> Array.toList
                             |> List.all isWall
-                            |> Expect.true "Has right wall"
+                            |> Expect.equal True
 
                     hasBottomWall world =
                         world
@@ -56,7 +73,7 @@ worldTests =
                             |> Result.withDefault Array.empty
                             |> Array.toList
                             |> List.all isWall
-                            |> Expect.true "Has bottom wall"
+                            |> Expect.equal True
 
                     hasLeftWall world =
                         world
@@ -64,7 +81,7 @@ worldTests =
                             |> Result.withDefault Array.empty
                             |> Array.toList
                             |> List.all isWall
-                            |> Expect.true "Has left wall"
+                            |> Expect.equal True
                 in
                 World.init (fromInt width) (fromInt height)
                     |> World.buildWalls
@@ -74,7 +91,13 @@ worldTests =
                         , hasBottomWall
                         , hasLeftWall
                         ]
-        , fuzz2 positive positive "Sets Hamster into the world if possible" <|
+        ]
+
+
+findHamsterTests : Test
+findHamsterTests =
+    describe "findHamster"
+        [ fuzz2 positive positive "sets the hamster into the world if possible" <|
             \width height ->
                 let
                     world =
@@ -91,7 +114,13 @@ worldTests =
                     world
                         |> World.findHamster
                         |> Expect.equal Nothing
-        , fuzz2 positive positive "Hamster can be rotated" <|
+        ]
+
+
+rotateHamsterTests : Test
+rotateHamsterTests =
+    describe "rotateHamster"
+        [ fuzz2 positive positive "hamster can be rotated" <|
             \width height ->
                 let
                     world =
@@ -107,7 +136,13 @@ worldTests =
 
                 else
                     Expect.pass
-        , fuzz2 positive positive "Hamster can be moved if the world is big enough" <|
+        ]
+
+
+moveHamsterTests : Test
+moveHamsterTests =
+    describe "moveHamster"
+        [ fuzz2 positive positive "hamster can be moved if the world is big enough" <|
             \width height ->
                 let
                     world =
@@ -119,12 +154,12 @@ worldTests =
                 if width > 3 && height > 7 then
                     world
                         |> isOk
-                        |> Expect.true "World is Ok"
+                        |> Expect.equal True
 
                 else
                     world
                         |> isOk
-                        |> Expect.false "World is not Ok"
+                        |> Expect.equal False
         ]
 
 
