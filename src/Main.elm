@@ -2,6 +2,7 @@ module Main exposing (Model, Msg(..), checkExecutionsLimit, documentView, execut
 
 import Array exposing (Array)
 import Browser exposing (Document)
+import Browser.Events as Events
 import Code exposing (Function, Instruction(..))
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
@@ -11,7 +12,7 @@ import Html.Styled.Lazy exposing (..)
 import Positive
 import Task
 import Task.Extra as Task
-import Time
+import Time exposing (Posix)
 import World exposing (Direction(..), Error(..), Tile(..), World)
 
 
@@ -29,7 +30,8 @@ type alias Model =
     { world : Result Error World
     , instructions : Code.Model
     , running : Bool
-    , interval : Float
+    , interval : Int
+    , lastTick : Posix
     }
 
 
@@ -39,6 +41,7 @@ init _ =
       , instructions = Code.init
       , running = False
       , interval = 750
+      , lastTick = Time.millisToPosix 0
       }
     , Cmd.none
     )
@@ -55,8 +58,9 @@ type Msg
     = PrependInstruction Instruction
     | AppendInstruction Instruction
     | Toggle
-    | SetInterval (Maybe Float)
-    | Tick
+    | SetInterval (Maybe Int)
+    | Next
+    | Tick Posix
     | ParseCode String
     | Reset
     | SetTile Int Int Tile
@@ -92,33 +96,41 @@ update msg model =
             , Cmd.none
             )
 
-        Tick ->
-            model.world
-                |> Result.map
-                    (\_ ->
-                        case model.instructions.instructions of
-                            Ok (instruction :: newInstructions) ->
-                                let
-                                    ( newWorld, cmd ) =
-                                        executeInstruction instruction model.world
+        Next ->
+            ( model, Task.perform Tick Time.now )
 
-                                    newRunning =
-                                        newWorld
-                                            |> Result.map (always model.running)
-                                            |> Result.withDefault False
-                                in
-                                ( { model
-                                    | world = newWorld
-                                    , running = newRunning
-                                    , instructions = Code.setInstructions newInstructions model.instructions
-                                  }
-                                , cmd
-                                )
+        Tick currentTime ->
+            if Time.posixToMillis currentTime > Time.posixToMillis model.lastTick + (1000 - model.interval) then
+                model.world
+                    |> Result.map
+                        (\_ ->
+                            case model.instructions.instructions of
+                                Ok (instruction :: newInstructions) ->
+                                    let
+                                        ( newWorld, cmd ) =
+                                            executeInstruction instruction model.world
 
-                            _ ->
-                                ( { model | running = False }, Cmd.none )
-                    )
-                |> Result.withDefault ( model, Cmd.none )
+                                        newRunning =
+                                            newWorld
+                                                |> Result.map (always model.running)
+                                                |> Result.withDefault False
+                                    in
+                                    ( { model
+                                        | world = newWorld
+                                        , running = newRunning
+                                        , instructions = Code.setInstructions newInstructions model.instructions
+                                        , lastTick = currentTime
+                                      }
+                                    , cmd
+                                    )
+
+                                _ ->
+                                    ( { model | running = False }, Cmd.none )
+                        )
+                    |> Result.withDefault ( model, Cmd.none )
+
+            else
+                ( model, Cmd.none )
 
         SetTile x y tile ->
             ( { model | world = World.set x y tile model.world }, Cmd.none )
@@ -361,7 +373,7 @@ viewControls model =
         , button [ onClick <| AppendInstruction <| If Code.Free [ Go ] ] [ text "Go if Free" ]
         , button [ onClick <| AppendInstruction <| While Code.Free [ Go ] ] [ text "Go while Free" ]
         , button [ onClick <| AppendInstruction <| While Code.Free [ While Code.Free [ Go ], RotateLeft ] ] [ text "Run forever in circle" ]
-        , button [ onClick Tick ] [ text "Next" ]
+        , button [ onClick Next ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if model.running then
                 text "Stop"
@@ -372,11 +384,11 @@ viewControls model =
         , button [ onClick Reset ] [ text "Reset" ]
         , input
             [ type_ "range"
-            , onInput (SetInterval << String.toFloat)
+            , onInput (SetInterval << String.toInt)
             , Attributes.min "0"
             , Attributes.max "1000"
             , step "250"
-            , value (String.fromFloat model.interval)
+            , value (String.fromInt model.interval)
             ]
             []
         , case model.instructions.instructions of
@@ -394,7 +406,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ if model.running then
-            Time.every (1000 - model.interval) (always Tick)
+            Events.onAnimationFrame Tick
 
           else
             Sub.none
