@@ -1,6 +1,12 @@
-module Code exposing (Function(..), Instruction(..), parser)
+module Code exposing (Function(..), Instruction(..), Model, append, init, parse, prepend, setInstructions)
 
 import Parser exposing (..)
+
+
+type alias Model =
+    { text : String
+    , instructions : Result (List Parser.DeadEnd) (List Instruction)
+    }
 
 
 type Instruction
@@ -8,6 +14,31 @@ type Instruction
     | RotateLeft
     | If Function (List Instruction)
     | While Function (List Instruction)
+
+
+init : Model
+init =
+    { text = "", instructions = Ok [] }
+
+
+prepend : Instruction -> Model -> Model
+prepend instruction model =
+    { model | instructions = Result.map (\instructions -> instruction :: instructions) model.instructions }
+
+
+append : Instruction -> Model -> Model
+append instruction model =
+    { model | instructions = Result.map (\instructions -> instructions ++ [ instruction ]) model.instructions }
+
+
+setInstructions : List Instruction -> Model -> Model
+setInstructions newInstructions model =
+    { model | instructions = Ok newInstructions }
+
+
+parse : String -> Model -> Model
+parse code model =
+    { model | text = code, instructions = Parser.run parser code }
 
 
 parser : Parser (List Instruction)

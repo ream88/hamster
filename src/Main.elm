@@ -2,13 +2,12 @@ module Main exposing (Model, Msg(..), checkExecutionsLimit, documentView, execut
 
 import Array exposing (Array)
 import Browser exposing (Document)
-import Code exposing (Function, Instruction(..), parser)
+import Code exposing (Function, Instruction(..))
 import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Lazy exposing (..)
-import Parser
 import Positive
 import Task
 import Task.Extra as Task
@@ -28,20 +27,18 @@ main =
 
 type alias Model =
     { world : Result Error World
-    , instructions : Result (List Parser.DeadEnd) (List Instruction)
+    , instructions : Code.Model
     , running : Bool
     , interval : Float
-    , code : String
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { world = initialWorld
-      , instructions = Ok []
+      , instructions = Code.init
       , running = False
       , interval = 750
-      , code = ""
       }
     , Cmd.none
     )
@@ -60,8 +57,7 @@ type Msg
     | Toggle
     | SetInterval (Maybe Float)
     | Tick
-    | SetCode String
-    | ParseCode
+    | ParseCode String
     | Reset
     | SetTile Int Int Tile
 
@@ -70,10 +66,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         PrependInstruction instruction ->
-            ( { model | instructions = Result.map (\instructions -> instruction :: instructions) model.instructions }, Cmd.none )
+            ( { model | instructions = Code.prepend instruction model.instructions }, Cmd.none )
 
         AppendInstruction instruction ->
-            ( { model | instructions = Result.map (\instructions -> instructions ++ [ instruction ]) model.instructions }, Cmd.none )
+            ( { model | instructions = Code.append instruction model.instructions }, Cmd.none )
 
         Toggle ->
             ( { model | running = not model.running }, Cmd.none )
@@ -84,16 +80,13 @@ update msg model =
         SetInterval Nothing ->
             ( model, Cmd.none )
 
-        SetCode code ->
-            ( { model | code = code }, Cmd.none )
-
-        ParseCode ->
-            ( { model | instructions = Parser.run Code.parser model.code }, Cmd.none )
+        ParseCode string ->
+            ( { model | instructions = Code.parse string model.instructions }, Cmd.none )
 
         Reset ->
             ( { model
                 | running = False
-                , instructions = Parser.run Code.parser model.code
+                , instructions = Code.init
                 , world = initialWorld
               }
             , Cmd.none
@@ -103,7 +96,7 @@ update msg model =
             model.world
                 |> Result.map
                     (\_ ->
-                        case model.instructions of
+                        case model.instructions.instructions of
                             Ok (instruction :: newInstructions) ->
                                 let
                                     ( newWorld, cmd ) =
@@ -114,7 +107,13 @@ update msg model =
                                             |> Result.map (always model.running)
                                             |> Result.withDefault False
                                 in
-                                ( { model | world = newWorld, running = newRunning, instructions = Ok newInstructions }, cmd )
+                                ( { model
+                                    | world = newWorld
+                                    , running = newRunning
+                                    , instructions = Code.setInstructions newInstructions model.instructions
+                                  }
+                                , cmd
+                                )
 
                             _ ->
                                 ( { model | running = False }, Cmd.none )
@@ -244,8 +243,8 @@ view model =
                     , Css.height (pct 100)
                     , fontFamilies [ "Consolas", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Monaco", "Courier New", "Courier", .value monospace ]
                     ]
-                , onInput SetCode
-                , value model.code
+                , onInput ParseCode
+                , value model.instructions.text
                 ]
                 []
             ]
@@ -370,7 +369,6 @@ viewControls model =
               else
                 text "Start"
             ]
-        , button [ onClick ParseCode ] [ text "Parse Code" ]
         , button [ onClick Reset ] [ text "Reset" ]
         , input
             [ type_ "range"
@@ -381,7 +379,7 @@ viewControls model =
             , value (String.fromFloat model.interval)
             ]
             []
-        , case model.instructions of
+        , case model.instructions.instructions of
             Ok instructions ->
                 instructions
                     |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
