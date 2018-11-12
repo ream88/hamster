@@ -9,9 +9,10 @@ import Test exposing (..)
 tests : Test
 tests =
     describe "Code"
-        [ describe "parse"
+        [ describe "parser"
             [ goInstructionTests
             , rotateLeftInstructionTests
+            , unknownSubInstructionTests
             , ifInstructionTests
             , whileInstructionTests
             ]
@@ -20,17 +21,17 @@ tests =
 
 goInstructionTests : Test
 goInstructionTests =
-    describe "parses a Go instruction"
+    describe "parses a go instruction"
         [ test "go();" <|
             \_ ->
                 "go();"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Go ])
+                    |> Expect.equal (Ok [ Sub "go" ])
         , test "go() ;" <|
             \_ ->
                 "go() ;"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Go ])
+                    |> Expect.equal (Ok [ Sub "go" ])
         , test "go () ;" <|
             \_ ->
                 "go () ;"
@@ -42,23 +43,41 @@ goInstructionTests =
 
 rotateLeftInstructionTests : Test
 rotateLeftInstructionTests =
-    describe "parses a RotateLeft instruction"
+    describe "parses a rotateLeft instruction"
         [ test "rotateLeft();" <|
             \_ ->
                 "rotateLeft();"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ RotateLeft ])
+                    |> Expect.equal (Ok [ Sub "rotateLeft" ])
         , test "rotateLeft() ;" <|
             \_ ->
                 "rotateLeft() ;"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ RotateLeft ])
+                    |> Expect.equal (Ok [ Sub "rotateLeft" ])
         , test "rotateLeft () ;" <|
             \_ ->
                 "rotateLeft () ;"
                     |> Parser.run Code.parser
                     |> Result.mapError firstProblem
                     |> Expect.equal (Err (ExpectingSymbol "("))
+        ]
+
+
+unknownSubInstructionTests : Test
+unknownSubInstructionTests =
+    describe "parses any unknown instruction"
+        [ test "unknown();" <|
+            \_ ->
+                "unknown();"
+                    |> Parser.run Code.parser
+                    |> Result.mapError firstProblem
+                    |> Expect.equal (Err (Problem "unknown is not defined"))
+        , test "unknown() ;" <|
+            \_ ->
+                "unknown() ;"
+                    |> Parser.run Code.parser
+                    |> Result.mapError firstProblem
+                    |> Expect.equal (Err (Problem "unknown is not defined"))
         ]
 
 

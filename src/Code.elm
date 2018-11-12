@@ -10,8 +10,7 @@ type alias Model =
 
 
 type Instruction
-    = Go
-    | RotateLeft
+    = Sub String
     | If Function (List Instruction)
     | While Function (List Instruction)
 
@@ -73,13 +72,7 @@ instructionsParserHelper instructions =
             |. spaces
         , succeed (next instructions)
             |. spaces
-            |= goParser
-            |. spaces
-            |. symbol ";"
-            |. spaces
-        , succeed (next instructions)
-            |. spaces
-            |= rotateLeftParser
+            |= subParser
             |. spaces
             |. symbol ";"
             |. spaces
@@ -87,20 +80,25 @@ instructionsParserHelper instructions =
         ]
 
 
-goParser : Parser Instruction
-goParser =
-    succeed Go
-        |. keyword "go"
+subParser : Parser Instruction
+subParser =
+    succeed ()
+        |. chompWhile Char.isAlpha
         |. symbol "("
         |. symbol ")"
+        |> getChompedString
+        |> andThen
+            (\name ->
+                case String.filter Char.isAlpha name of
+                    "go" ->
+                        succeed (Sub "go")
 
+                    "rotateLeft" ->
+                        succeed (Sub "rotateLeft")
 
-rotateLeftParser : Parser Instruction
-rotateLeftParser =
-    succeed RotateLeft
-        |. keyword "rotateLeft"
-        |. symbol "("
-        |. symbol ")"
+                    unknown ->
+                        problem (unknown ++ " is not defined")
+            )
 
 
 ifParser : Parser Instruction

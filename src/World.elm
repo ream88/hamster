@@ -44,6 +44,7 @@ type Error
     | OutOfWorld
     | InvalidWorldSize
     | ExecutionLimitReached
+    | UnknownInstructionCalled String
 
 
 init : Positive -> Positive -> Result Error World

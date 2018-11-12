@@ -104,11 +104,16 @@ executeInstruction instruction maybeWorld =
     of
         Ok world ->
             case instruction of
-                Go ->
-                    ( World.moveHamster (Ok world), Cmd.none )
+                Sub name ->
+                    case name of
+                        "go" ->
+                            ( World.moveHamster (Ok world), Cmd.none )
 
-                RotateLeft ->
-                    ( World.rotateHamster (Ok world), Cmd.none )
+                        "rotateLeft" ->
+                            ( World.rotateHamster (Ok world), Cmd.none )
+
+                        unknown ->
+                            ( Err (UnknownInstructionCalled unknown), Cmd.none )
 
                 If function nestedInstructions ->
                     if executeFunction function (Ok world) then
