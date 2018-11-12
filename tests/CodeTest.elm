@@ -11,7 +11,7 @@ tests =
     describe "Code"
         [ describe "parser"
             [ goInstructionTests
-            , rotateLeftInstructionTests
+            , turnLeftInstructionTests
             , unknownSubInstructionTests
             , ifInstructionTests
             , whileInstructionTests
@@ -41,22 +41,22 @@ goInstructionTests =
         ]
 
 
-rotateLeftInstructionTests : Test
-rotateLeftInstructionTests =
-    describe "parses a rotateLeft instruction"
-        [ test "rotateLeft();" <|
+turnLeftInstructionTests : Test
+turnLeftInstructionTests =
+    describe "parses a turnLeft instruction"
+        [ test "turnLeft();" <|
             \_ ->
-                "rotateLeft();"
+                "turnLeft();"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Sub "rotateLeft" ])
-        , test "rotateLeft() ;" <|
+                    |> Expect.equal (Ok [ Sub "turnLeft" ])
+        , test "turnLeft() ;" <|
             \_ ->
-                "rotateLeft() ;"
+                "turnLeft() ;"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Sub "rotateLeft" ])
-        , test "rotateLeft () ;" <|
+                    |> Expect.equal (Ok [ Sub "turnLeft" ])
+        , test "turnLeft () ;" <|
             \_ ->
-                "rotateLeft () ;"
+                "turnLeft () ;"
                     |> Parser.run Code.parser
                     |> Result.mapError firstProblem
                     |> Expect.equal (Err (ExpectingSymbol "("))

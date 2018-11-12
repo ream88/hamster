@@ -23,10 +23,10 @@ viewControls : Model -> Html Msg
 viewControls model =
     div []
         [ button [ onClick <| AppendInstruction <| Sub "go" ] [ text "Go" ]
-        , button [ onClick <| AppendInstruction <| Sub "rotateLeft" ] [ text "Rotate Left" ]
+        , button [ onClick <| AppendInstruction <| Sub "turnLeft" ] [ text "Turn Left" ]
         , button [ onClick <| AppendInstruction <| If Code.Free [ Sub "go" ] ] [ text "Go if Free" ]
         , button [ onClick <| AppendInstruction <| While Code.Free [ Sub "go" ] ] [ text "Go while Free" ]
-        , button [ onClick <| AppendInstruction <| While Code.Free [ While Code.Free [ Sub "go" ], Sub "rotateLeft" ] ] [ text "Run forever in circle" ]
+        , button [ onClick <| AppendInstruction <| While Code.Free [ While Code.Free [ Sub "go" ], Sub "turnLeft" ] ] [ text "Run forever in circle" ]
         , button [ onClick Next ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if model.running then

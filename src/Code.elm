@@ -93,8 +93,8 @@ subParser =
                     "go" ->
                         succeed (Sub "go")
 
-                    "rotateLeft" ->
-                        succeed (Sub "rotateLeft")
+                    "turnLeft" ->
+                        succeed (Sub "turnLeft")
 
                     unknown ->
                         problem (unknown ++ " is not defined")

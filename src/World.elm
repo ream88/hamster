@@ -11,8 +11,8 @@ module World exposing
     , isBlocked
     , isHamster
     , moveHamster
-    , rotateHamster
     , set
+    , turnHamster
     , width
     )
 
@@ -207,8 +207,8 @@ moveHamster maybeWorld =
             Err NoHamster
 
 
-rotateHamster : Result Error World -> Result Error World
-rotateHamster maybeWorld =
+turnHamster : Result Error World -> Result Error World
+turnHamster maybeWorld =
     case findHamster maybeWorld of
         Just ( x, y, Hamster direction ) ->
             let

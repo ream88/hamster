@@ -13,7 +13,7 @@ tests =
     describe "Main"
         [ describe "executeInstruction"
             [ goInstructionTests
-            , rotateLeftInstructionTests
+            , turnLeftInstructionTests
             , unknownSubInstructionTests
 
             -- TODO: Both ifInstructionTests and whileInstructionTests needs proper Expect checks
@@ -65,20 +65,20 @@ goInstructionTests =
         ]
 
 
-rotateLeftInstructionTests : Test
-rotateLeftInstructionTests =
-    describe "a rotateLeft instruction"
+turnLeftInstructionTests : Test
+turnLeftInstructionTests =
+    describe "a turnLeft instruction"
         [ test "results in a NoHamster Err when no hamster is found" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (Sub "rotateLeft")
+                    |> executeInstruction (Sub "turnLeft")
                     |> Tuple.first
                     |> Expect.equal (Err NoHamster)
-        , test "rotates the hamster to the left" <|
+        , test "turns the hamster to the left" <|
             \_ ->
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
-                    |> executeInstruction (Sub "rotateLeft")
+                    |> executeInstruction (Sub "turnLeft")
                     |> Tuple.first
                     |> World.findHamster
                     |> Expect.equal (Just ( 0, 0, Hamster East ))

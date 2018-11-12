@@ -14,7 +14,7 @@ tests =
         [ initTests
         , buildWallsTests
         , findHamsterTests
-        , rotateHamsterTests
+        , turnHamsterTests
         , moveHamsterTests
         ]
 
@@ -117,10 +117,10 @@ findHamsterTests =
         ]
 
 
-rotateHamsterTests : Test
-rotateHamsterTests =
-    describe "rotateHamster"
-        [ fuzz2 positive positive "hamster can be rotated" <|
+turnHamsterTests : Test
+turnHamsterTests =
+    describe "turnHamster"
+        [ fuzz2 positive positive "hamster can be turnd" <|
             \width height ->
                 let
                     world =
@@ -130,7 +130,7 @@ rotateHamsterTests =
                 in
                 if width > 2 && height > 5 then
                     world
-                        |> World.rotateHamster
+                        |> World.turnHamster
                         |> World.findHamster
                         |> Expect.equal (Just ( 2, 5, Hamster East ))
 

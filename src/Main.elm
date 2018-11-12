@@ -109,8 +109,8 @@ executeInstruction instruction maybeWorld =
                         "go" ->
                             ( World.moveHamster (Ok world), Cmd.none )
 
-                        "rotateLeft" ->
-                            ( World.rotateHamster (Ok world), Cmd.none )
+                        "turnLeft" ->
+                            ( World.turnHamster (Ok world), Cmd.none )
 
                         unknown ->
                             ( Err (UnknownInstructionCalled unknown), Cmd.none )
