@@ -1,10 +1,9 @@
 module MainTest exposing (tests)
 
 import Code exposing (Function, Instruction(..))
-import Expect exposing (Expectation)
+import Expect
 import Main exposing (..)
 import Positive
-import Task.Extra as Task
 import Test exposing (..)
 import World exposing (Direction(..), Error(..), Tile(..), World)
 

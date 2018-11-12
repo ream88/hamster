@@ -1,8 +1,8 @@
 module WorldTest exposing (tests)
 
 import Array exposing (Array)
-import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, int, list, string)
+import Expect
+import Fuzz exposing (Fuzzer)
 import Positive exposing (fromInt)
 import Test exposing (..)
 import World exposing (Direction(..), Tile(..), World)
