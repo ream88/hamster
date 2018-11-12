@@ -9,7 +9,7 @@ import World exposing (Direction(..), Error, Tile(..), World)
 
 type alias Model =
     { world : Result Error World
-    , instructions : Code.Model
+    , code : Code.Model
     , running : Bool
     , interval : Int
     , lastTick : Posix
@@ -19,7 +19,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { world = initWorld
-      , instructions = Code.init
+      , code = Code.init
       , running = False
       , interval = 750
       , lastTick = Time.millisToPosix 0

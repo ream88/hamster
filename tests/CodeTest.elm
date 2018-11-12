@@ -26,12 +26,12 @@ goInstructionTests =
             \_ ->
                 "go();"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Sub "go" ])
+                    |> Expect.equal (Ok { instructions = [ SubCall "go" ], subs = [] })
         , test "go() ;" <|
             \_ ->
                 "go() ;"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Sub "go" ])
+                    |> Expect.equal (Ok { instructions = [ SubCall "go" ], subs = [] })
         , test "go () ;" <|
             \_ ->
                 "go () ;"
@@ -48,12 +48,12 @@ turnLeftInstructionTests =
             \_ ->
                 "turnLeft();"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Sub "turnLeft" ])
+                    |> Expect.equal (Ok { instructions = [ SubCall "turnLeft" ], subs = [] })
         , test "turnLeft() ;" <|
             \_ ->
                 "turnLeft() ;"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ Sub "turnLeft" ])
+                    |> Expect.equal (Ok { instructions = [ SubCall "turnLeft" ], subs = [] })
         , test "turnLeft () ;" <|
             \_ ->
                 "turnLeft () ;"
@@ -88,28 +88,28 @@ ifInstructionTests =
             \_ ->
                 "if (true) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ If Code.True [] ])
+                    |> Expect.equal (Ok { instructions = [ If Code.True [] ], subs = [] })
         , test "multiline if (true) {}" <|
             \_ ->
                 """if (true) {
                 }"""
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ If Code.True [] ])
+                    |> Expect.equal (Ok { instructions = [ If Code.True [] ], subs = [] })
         , test "if ( true ) {}" <|
             \_ ->
                 "if ( true ) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ If Code.True [] ])
+                    |> Expect.equal (Ok { instructions = [ If Code.True [] ], subs = [] })
         , test "if (free()) {}" <|
             \_ ->
                 "if (free()) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ If Code.Free [] ])
+                    |> Expect.equal (Ok { instructions = [ If Code.Free [] ], subs = [] })
         , test "if ( free() ) {}" <|
             \_ ->
                 "if ( free() ) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ If Code.Free [] ])
+                    |> Expect.equal (Ok { instructions = [ If Code.Free [] ], subs = [] })
         ]
 
 
@@ -120,28 +120,28 @@ whileInstructionTests =
             \_ ->
                 "while (true) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ While Code.True [] ])
+                    |> Expect.equal (Ok { instructions = [ While Code.True [] ], subs = [] })
         , test "multiline while (true) {}" <|
             \_ ->
                 """while (true) {
                 }"""
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ While Code.True [] ])
+                    |> Expect.equal (Ok { instructions = [ While Code.True [] ], subs = [] })
         , test "while ( true ) {}" <|
             \_ ->
                 "while ( true ) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ While Code.True [] ])
+                    |> Expect.equal (Ok { instructions = [ While Code.True [] ], subs = [] })
         , test "while (free()) {}" <|
             \_ ->
                 "while (free()) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ While Code.Free [] ])
+                    |> Expect.equal (Ok { instructions = [ While Code.Free [] ], subs = [] })
         , test "while ( free() ) {}" <|
             \_ ->
                 "while ( free() ) {}"
                     |> Parser.run Code.parser
-                    |> Expect.equal (Ok [ While Code.Free [] ])
+                    |> Expect.equal (Ok { instructions = [ While Code.Free [] ], subs = [] })
         ]
 
 

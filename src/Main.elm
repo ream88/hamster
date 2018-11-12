@@ -29,10 +29,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         PrependInstruction instruction ->
-            ( { model | instructions = Code.prepend instruction model.instructions }, Cmd.none )
+            ( { model | code = Code.prepend instruction model.code }, Cmd.none )
 
         AppendInstruction instruction ->
-            ( { model | instructions = Code.append instruction model.instructions }, Cmd.none )
+            ( { model | code = Code.append instruction model.code }, Cmd.none )
 
         Toggle ->
             ( { model | running = not model.running }, Cmd.none )
@@ -44,12 +44,12 @@ update msg model =
             ( model, Cmd.none )
 
         ParseCode string ->
-            ( { model | instructions = Code.parse string model.instructions }, Cmd.none )
+            ( { model | code = Code.parse string model.code }, Cmd.none )
 
         Reset ->
             ( { model
                 | running = False
-                , instructions = Code.init
+                , code = Code.init
                 , world = Model.initWorld
               }
             , Cmd.none
@@ -63,8 +63,8 @@ update msg model =
                 model.world
                     |> Result.map
                         (\_ ->
-                            case model.instructions.instructions of
-                                Ok (instruction :: newInstructions) ->
+                            case Code.pop model.code of
+                                ( Just instruction, newInstructions ) ->
                                     let
                                         ( newWorld, cmd ) =
                                             executeInstruction instruction model.world
@@ -77,7 +77,7 @@ update msg model =
                                     ( { model
                                         | world = newWorld
                                         , running = newRunning
-                                        , instructions = Code.setInstructions newInstructions model.instructions
+                                        , code = Code.setInstructions newInstructions model.code
                                         , lastTick = currentTime
                                       }
                                     , cmd
@@ -104,7 +104,7 @@ executeInstruction instruction maybeWorld =
     of
         Ok world ->
             case instruction of
-                Sub name ->
+                SubCall name ->
                     case name of
                         "go" ->
                             ( World.moveHamster (Ok world), Cmd.none )

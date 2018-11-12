@@ -1,48 +1,74 @@
-module Code exposing (Function(..), Instruction(..), Model, append, init, parse, parser, prepend, setInstructions)
+module Code exposing (Code, Function(..), Instruction(..), Model, append, init, parse, parser, pop, prepend, setInstructions)
 
 import Parser exposing (..)
 
 
-type alias Model =
-    { text : String
-    , instructions : Result (List Parser.DeadEnd) (List Instruction)
-    }
+type Sub
+    = Sub String (List Instruction)
 
 
 type Instruction
-    = Sub String
+    = SubCall String
     | If Function (List Instruction)
     | While Function (List Instruction)
 
 
+
+-- NOTE: Should Code be exported?
+
+
+type alias Code =
+    { instructions : List Instruction, subs : List Sub }
+
+
+type alias Model =
+    Result (List DeadEnd) Code
+
+
 init : Model
 init =
-    { text = "", instructions = Ok [] }
+    Ok { instructions = [], subs = [] }
+
+
+pop : Model -> ( Maybe Instruction, List Instruction )
+pop model =
+    model
+        |> Result.map
+            (\{ instructions } ->
+                case instructions of
+                    head :: tail ->
+                        ( Just head, tail )
+
+                    [] ->
+                        ( Nothing, [] )
+            )
+        |> Result.withDefault ( Nothing, [] )
 
 
 prepend : Instruction -> Model -> Model
-prepend instruction model =
-    { model | instructions = Result.map (\instructions -> instruction :: instructions) model.instructions }
+prepend instruction =
+    Result.map (\code -> { code | instructions = instruction :: code.instructions })
 
 
 append : Instruction -> Model -> Model
-append instruction model =
-    { model | instructions = Result.map (\instructions -> instructions ++ [ instruction ]) model.instructions }
+append instruction =
+    Result.map (\code -> { code | instructions = code.instructions ++ [ instruction ] })
 
 
 setInstructions : List Instruction -> Model -> Model
-setInstructions newInstructions model =
-    { model | instructions = Ok newInstructions }
+setInstructions newInstructions =
+    Result.map (\code -> { code | instructions = newInstructions })
 
 
 parse : String -> Model -> Model
-parse code model =
-    { model | text = code, instructions = Parser.run parser code }
+parse text model =
+    Parser.run parser text
 
 
-parser : Parser (List Instruction)
+parser : Parser Code
 parser =
     instructionsParser
+        |> Parser.map (\instructions -> { instructions = instructions, subs = [] })
 
 
 instructionsParser : Parser (List Instruction)
@@ -55,6 +81,7 @@ next instructions instruction =
     Loop (instruction :: instructions)
 
 
+done : List Instruction -> Step a (List Instruction)
 done instructions =
     Done (List.reverse instructions)
 
@@ -72,7 +99,7 @@ instructionsParserHelper instructions =
             |. spaces
         , succeed (next instructions)
             |. spaces
-            |= subParser
+            |= subCallParser
             |. spaces
             |. symbol ";"
             |. spaces
@@ -80,8 +107,8 @@ instructionsParserHelper instructions =
         ]
 
 
-subParser : Parser Instruction
-subParser =
+subCallParser : Parser Instruction
+subCallParser =
     succeed ()
         |. chompWhile Char.isAlpha
         |. symbol "("
@@ -91,10 +118,10 @@ subParser =
             (\name ->
                 case String.filter Char.isAlpha name of
                     "go" ->
-                        succeed (Sub "go")
+                        succeed (SubCall "go")
 
                     "turnLeft" ->
-                        succeed (Sub "turnLeft")
+                        succeed (SubCall "turnLeft")
 
                     unknown ->
                         problem (unknown ++ " is not defined")

@@ -22,11 +22,11 @@ view model =
 viewControls : Model -> Html Msg
 viewControls model =
     div []
-        [ button [ onClick <| AppendInstruction <| Sub "go" ] [ text "Go" ]
-        , button [ onClick <| AppendInstruction <| Sub "turnLeft" ] [ text "Turn Left" ]
-        , button [ onClick <| AppendInstruction <| If Code.Free [ Sub "go" ] ] [ text "Go if Free" ]
-        , button [ onClick <| AppendInstruction <| While Code.Free [ Sub "go" ] ] [ text "Go while Free" ]
-        , button [ onClick <| AppendInstruction <| While Code.Free [ While Code.Free [ Sub "go" ], Sub "turnLeft" ] ] [ text "Run forever in circle" ]
+        [ button [ onClick <| AppendInstruction <| SubCall "go" ] [ text "Go" ]
+        , button [ onClick <| AppendInstruction <| SubCall "turnLeft" ] [ text "Turn Left" ]
+        , button [ onClick <| AppendInstruction <| If Code.Free [ SubCall "go" ] ] [ text "Go if Free" ]
+        , button [ onClick <| AppendInstruction <| While Code.Free [ SubCall "go" ] ] [ text "Go while Free" ]
+        , button [ onClick <| AppendInstruction <| While Code.Free [ While Code.Free [ SubCall "go" ], SubCall "turnLeft" ] ] [ text "Run forever in circle" ]
         , button [ onClick Next ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if model.running then
@@ -45,8 +45,8 @@ viewControls model =
             , value (String.fromInt model.interval)
             ]
             []
-        , case model.instructions.instructions of
-            Ok instructions ->
+        , case model.code of
+            Ok { instructions } ->
                 instructions
                     |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
                     |> ul []

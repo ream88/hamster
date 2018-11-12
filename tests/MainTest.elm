@@ -36,14 +36,14 @@ goInstructionTests =
         [ test "results in a NoHamster Err when no hamster is found" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (Sub "go")
+                    |> executeInstruction (SubCall "go")
                     |> Tuple.first
                     |> Expect.equal (Err NoHamster)
         , test "causes the hamster to fall off the world" <|
             \_ ->
                 sampleWorld
                     |> World.set 0 0 (Hamster North)
-                    |> executeInstruction (Sub "go")
+                    |> executeInstruction (SubCall "go")
                     |> Tuple.first
                     |> Expect.equal (Err OutOfWorld)
         , test "causes the hamster to collide with the wall" <|
@@ -51,14 +51,14 @@ goInstructionTests =
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
                     |> World.set 0 1 Wall
-                    |> executeInstruction (Sub "go")
+                    |> executeInstruction (SubCall "go")
                     |> Tuple.first
                     |> Expect.equal (Err Collision)
         , test "moves the hamster one field into the current direction" <|
             \_ ->
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
-                    |> executeInstruction (Sub "go")
+                    |> executeInstruction (SubCall "go")
                     |> Tuple.first
                     |> World.findHamster
                     |> Expect.equal (Just ( 0, 1, Hamster South ))
@@ -71,14 +71,14 @@ turnLeftInstructionTests =
         [ test "results in a NoHamster Err when no hamster is found" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (Sub "turnLeft")
+                    |> executeInstruction (SubCall "turnLeft")
                     |> Tuple.first
                     |> Expect.equal (Err NoHamster)
         , test "turns the hamster to the left" <|
             \_ ->
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
-                    |> executeInstruction (Sub "turnLeft")
+                    |> executeInstruction (SubCall "turnLeft")
                     |> Tuple.first
                     |> World.findHamster
                     |> Expect.equal (Just ( 0, 0, Hamster East ))
@@ -92,7 +92,7 @@ unknownSubInstructionTests =
             \_ ->
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
-                    |> executeInstruction (Sub "unknown")
+                    |> executeInstruction (SubCall "unknown")
                     |> Tuple.first
                     |> Expect.equal (Err (UnknownInstructionCalled "unknown"))
         ]
@@ -104,13 +104,13 @@ ifInstructionTests =
         [ test "prepends the nested instructions onto the stack if equaling to True" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (If Code.True [ Sub "go" ])
+                    |> executeInstruction (If Code.True [ SubCall "go" ])
                     |> Tuple.second
                     |> Expect.notEqual Cmd.none
         , test "does not prepend the nested instructions onto the stack if equaling to False" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (If Code.False [ Sub "go" ])
+                    |> executeInstruction (If Code.False [ SubCall "go" ])
                     |> Tuple.second
                     |> Expect.equal Cmd.none
         ]
@@ -122,13 +122,13 @@ whileInstructionTests =
         [ test "prepends the nested instructions onto the stack if equaling to True" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (While Code.True [ Sub "go" ])
+                    |> executeInstruction (While Code.True [ SubCall "go" ])
                     |> Tuple.second
                     |> Expect.notEqual Cmd.none
         , test "does not prepend the nested instructions onto the stack if equaling to False" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (While Code.False [ Sub "go" ])
+                    |> executeInstruction (While Code.False [ SubCall "go" ])
                     |> Tuple.second
                     |> Expect.equal Cmd.none
         ]
@@ -142,7 +142,7 @@ checkExecutionsLimitTests =
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
                     |> setExecutions 0
-                    |> executeInstruction (Sub "go")
+                    |> executeInstruction (SubCall "go")
                     |> Tuple.first
                     |> World.findHamster
                     |> Expect.equal (Just ( 0, 1, Hamster South ))
@@ -151,7 +151,7 @@ checkExecutionsLimitTests =
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
                     |> setExecutions 999
-                    |> executeInstruction (Sub "go")
+                    |> executeInstruction (SubCall "go")
                     |> Tuple.first
                     |> Expect.equal (Err ExecutionLimitReached)
         ]
