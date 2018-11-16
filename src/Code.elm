@@ -4,7 +4,9 @@ module Code exposing
     , Instruction(..)
     , append
     , getSource
+    , getStack
     , getSub
+    , getSubs
     , parse
     , parser
     , pop
@@ -26,23 +28,25 @@ type alias Subs =
     Dict String (List Instruction)
 
 
-type alias Code =
-    { source : String
-    , program : Result (List DeadEnd) Subs
-    , stack : List Instruction
-    }
+type Code
+    = Code
+        { source : String
+        , program : Result (List DeadEnd) Subs
+        , stack : List Instruction
+        }
 
 
 parse : String -> Code
 parse source =
-    { source = source
-    , stack = [ SubCall "main" ]
-    , program = Parser.run parser source
-    }
+    Code
+        { source = source
+        , stack = [ SubCall "main" ]
+        , program = Parser.run parser source
+        }
 
 
 pop : Code -> ( Maybe Instruction, List Instruction )
-pop { stack } =
+pop (Code { stack }) =
     case stack of
         head :: tail ->
             ( Just head, tail )
@@ -52,22 +56,22 @@ pop { stack } =
 
 
 prepend : Instruction -> Code -> Code
-prepend instruction model =
-    { model | stack = instruction :: model.stack }
+prepend instruction (Code model) =
+    Code { model | stack = instruction :: model.stack }
 
 
 append : Instruction -> Code -> Code
-append instruction model =
-    { model | stack = model.stack ++ [ instruction ] }
+append instruction (Code model) =
+    Code { model | stack = model.stack ++ [ instruction ] }
 
 
 setStack : List Instruction -> Code -> Code
-setStack newStack model =
-    { model | stack = newStack }
+setStack newStack (Code model) =
+    Code { model | stack = newStack }
 
 
 getSub : String -> Code -> Maybe (List Instruction)
-getSub name { program } =
+getSub name (Code { program }) =
     case program of
         Ok subs ->
             Dict.get name subs
@@ -76,9 +80,19 @@ getSub name { program } =
             Nothing
 
 
+getSubs : Code -> Result (List DeadEnd) Subs
+getSubs (Code { program }) =
+    program
+
+
 getSource : Code -> String
-getSource { source } =
+getSource (Code { source }) =
     source
+
+
+getStack : Code -> List Instruction
+getStack (Code { stack }) =
+    stack
 
 
 parser : Parser Subs

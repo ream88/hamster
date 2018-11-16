@@ -8,6 +8,7 @@ import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Model exposing (Model)
 import Msg exposing (Msg(..))
+import Style exposing (..)
 
 
 view model =
@@ -47,7 +48,7 @@ viewControls model =
             ]
             []
         , h2 [] [ text "Parser Result" ]
-        , case model.code.program of
+        , case Code.getSubs model.code of
             Ok subs ->
                 subs
                     |> Dict.toList
@@ -57,14 +58,15 @@ viewControls model =
 
             Err err ->
                 text <| Debug.toString <| err
-        , text <| Debug.toString model.code
         , h2 [] [ text "Stack" ]
-        , model.code.stack
-            |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
+        , model.code
+            |> Code.getStack
+            |> List.map (\instruction -> li [ css [ monospaced ] ] [ text <| Debug.toString <| instruction ])
             |> ul []
         ]
 
 
 viewSub : ( String, List Instruction ) -> List (Html Msg)
 viewSub ( name, instructions ) =
-    dt [ style "font-family" "monospace" ] [ strong [] [ text ("sub " ++ name ++ "()") ] ] :: List.map (\instruction -> dd [ style "font-family" "monospace" ] [ text <| Debug.toString instruction ]) instructions
+    dt [ css [ monospaced ] ] [ strong [] [ text ("sub " ++ name ++ "()") ] ]
+        :: List.map (\instruction -> dd [ css [ monospaced ] ] [ text <| Debug.toString instruction ]) instructions
