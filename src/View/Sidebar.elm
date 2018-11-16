@@ -1,6 +1,6 @@
 module View.Sidebar exposing (view)
 
-import Code exposing (Instruction)
+import Code exposing (Function(..), Instruction(..))
 import Css exposing (..)
 import Dict
 import Html.Styled as Html exposing (..)
@@ -8,6 +8,7 @@ import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Model exposing (Model)
 import Msg exposing (Msg(..))
+import Parser
 import Style exposing (..)
 
 
@@ -53,20 +54,57 @@ viewControls model =
                 subs
                     |> Dict.toList
                     |> List.map viewSub
-                    |> List.foldr (++) []
-                    |> dl []
+                    |> ul []
 
             Err err ->
-                text <| Debug.toString <| err
+                text <| Parser.deadEndsToString err
         , h2 [] [ text "Stack" ]
-        , model.code
-            |> Code.getStack
-            |> List.map (\instruction -> li [ css [ monospaced ] ] [ text <| Debug.toString <| instruction ])
-            |> ul []
+        , viewInstructions <| Code.getStack <| model.code
         ]
 
 
-viewSub : ( String, List Instruction ) -> List (Html Msg)
+viewInstructions : List Instruction -> Html Msg
+viewInstructions instructions =
+    instructions
+        |> List.map (\instruction -> li [] (viewInstruction instruction))
+        |> ul [ css [ monospaced ] ]
+
+
+viewInstruction : Instruction -> List (Html Msg)
+viewInstruction instruction =
+    case instruction of
+        SubCall name ->
+            [ strong [] [ text (name ++ "();") ] ]
+
+        If fun instructions ->
+            [ text "if ", viewFunction fun, viewInstructions instructions ]
+
+        While fun instructions ->
+            [ text "while ", viewFunction fun, viewInstructions instructions ]
+
+
+viewFunction : Function -> Html Msg
+viewFunction fun =
+    case fun of
+        Code.True ->
+            strong [] [ text " true " ]
+
+        Code.False ->
+            strong [] [ text " false " ]
+
+        Code.Not nestedFun ->
+            strong [] [ text " not ", viewFunction nestedFun ]
+
+        Code.Free ->
+            strong [] [ text " free() " ]
+
+
+viewSub : ( String, List Instruction ) -> Html Msg
 viewSub ( name, instructions ) =
-    dt [ css [ monospaced ] ] [ strong [] [ text ("sub " ++ name ++ "()") ] ]
-        :: List.map (\instruction -> dd [ css [ monospaced ] ] [ text <| Debug.toString instruction ]) instructions
+    li
+        []
+        [ text "sub "
+        , strong [] [ text name ]
+        , text "()"
+        , viewInstructions instructions
+        ]

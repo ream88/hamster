@@ -79,7 +79,7 @@ viewWorld maybeWorld =
                     ]
 
         Err err ->
-            text <| Debug.toString err
+            viewError err
 
 
 lazyViewTile : Int -> Int -> Tile -> Html Msg
@@ -149,3 +149,27 @@ viewTile x y tile =
         , onClick changeTile
         ]
         []
+
+
+viewError : Error -> Html Msg
+viewError error =
+    (case error of
+        InvalidWorldSize ->
+            "The given world size is not valid"
+
+        NoHamster ->
+            "There is no hamster in the world"
+
+        Collision ->
+            "The hamster collided with a wall"
+
+        OutOfWorld ->
+            "The hamster has fallen out of the world"
+
+        ExecutionLimitReached ->
+            "Your code run for too long"
+
+        UnknownInstructionCalled instruction ->
+            "The sub \"" ++ instruction ++ "\" was never defined"
+    )
+        |> text

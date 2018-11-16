@@ -39,10 +39,10 @@ type Direction
 
 
 type Error
-    = NoHamster
+    = InvalidWorldSize
+    | NoHamster
     | Collision
     | OutOfWorld
-    | InvalidWorldSize
     | ExecutionLimitReached
     | UnknownInstructionCalled String
 

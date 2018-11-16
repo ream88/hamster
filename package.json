@@ -7,6 +7,7 @@
     "test": "tests"
   },
   "scripts": {
+    "build": "NODE_ENV=production webpack -p",
     "start": "webpack-dev-server --hot",
     "test": "elm-test"
   },
@@ -23,6 +24,7 @@
   "devDependencies": {
     "elm-test": "^0.19.0-beta12",
     "elm-webpack-loader": "^5.0.0",
+    "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack-dev-server": "^3.1.1"
   },
   "dependencies": {
