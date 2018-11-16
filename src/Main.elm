@@ -3,7 +3,7 @@ module Main exposing (checkExecutionsLimit, executeFunction, executeInstruction,
 import Array exposing (Array)
 import Browser exposing (Document)
 import Browser.Events as Events
-import Code exposing (Function, Instruction(..))
+import Code exposing (Code, Function, Instruction(..))
 import Model exposing (Model)
 import Msg exposing (Msg(..))
 import Positive
@@ -44,12 +44,11 @@ update msg model =
             ( model, Cmd.none )
 
         ParseCode string ->
-            ( { model | code = Code.parse string model.code }, Cmd.none )
+            ( { model | code = Code.parse string }, Cmd.none )
 
         Reset ->
             ( { model
                 | running = False
-                , code = Code.init
                 , world = Model.initWorld
               }
             , Cmd.none
@@ -67,7 +66,7 @@ update msg model =
                                 ( Just instruction, newInstructions ) ->
                                     let
                                         ( newWorld, cmd ) =
-                                            executeInstruction instruction model.world
+                                            executeInstruction instruction model.code model.world
 
                                         newRunning =
                                             newWorld
@@ -77,7 +76,7 @@ update msg model =
                                     ( { model
                                         | world = newWorld
                                         , running = newRunning
-                                        , code = Code.setInstructions newInstructions model.code
+                                        , code = Code.setStack newInstructions model.code
                                         , lastTick = currentTime
                                       }
                                     , cmd
@@ -95,8 +94,8 @@ update msg model =
             ( { model | world = World.set x y tile model.world }, Cmd.none )
 
 
-executeInstruction : Instruction -> Result Error World -> ( Result Error World, Cmd Msg )
-executeInstruction instruction maybeWorld =
+executeInstruction : Instruction -> Code -> Result Error World -> ( Result Error World, Cmd Msg )
+executeInstruction instruction code maybeWorld =
     case
         maybeWorld
             |> increaseExecutions
@@ -112,8 +111,17 @@ executeInstruction instruction maybeWorld =
                         "turnLeft" ->
                             ( World.turnHamster (Ok world), Cmd.none )
 
-                        unknown ->
-                            ( Err (UnknownInstructionCalled unknown), Cmd.none )
+                        custom ->
+                            case Code.getSub custom code of
+                                Just nestedInstructions ->
+                                    ( Ok world
+                                    , nestedInstructions
+                                        |> List.map (Task.send << PrependInstruction)
+                                        |> Cmd.batch
+                                    )
+
+                                Nothing ->
+                                    ( Err (UnknownInstructionCalled custom), Cmd.none )
 
                 If function nestedInstructions ->
                     if executeFunction function (Ok world) then

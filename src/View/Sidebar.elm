@@ -1,7 +1,8 @@
 module View.Sidebar exposing (view)
 
-import Code exposing (Instruction(..))
+import Code exposing (Instruction)
 import Css exposing (..)
+import Dict
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
@@ -22,11 +23,11 @@ view model =
 viewControls : Model -> Html Msg
 viewControls model =
     div []
-        [ button [ onClick <| AppendInstruction <| SubCall "go" ] [ text "Go" ]
-        , button [ onClick <| AppendInstruction <| SubCall "turnLeft" ] [ text "Turn Left" ]
-        , button [ onClick <| AppendInstruction <| If Code.Free [ SubCall "go" ] ] [ text "Go if Free" ]
-        , button [ onClick <| AppendInstruction <| While Code.Free [ SubCall "go" ] ] [ text "Go while Free" ]
-        , button [ onClick <| AppendInstruction <| While Code.Free [ While Code.Free [ SubCall "go" ], SubCall "turnLeft" ] ] [ text "Run forever in circle" ]
+        [ button [ onClick <| ParseCode "sub main() {\n  go();\n}" ] [ text "Go" ]
+        , button [ onClick <| ParseCode "sub main() {\n  turnLeft();\n}" ] [ text "Turn Left" ]
+        , button [ onClick <| ParseCode "sub main() {\n  if (free()) {\n    go();\n  }\n}" ] [ text "Go if Free" ]
+        , button [ onClick <| ParseCode "sub main() {\n  while (free()) {\n    go();\n  }\n}" ] [ text "Go while Free" ]
+        , button [ onClick <| ParseCode "sub main() {\n  while (free()) {\n    while (free()) {\n      go();\n    }\n    turnLeft();\n  }\n}" ] [ text "Run forever in circle" ]
         , button [ onClick Next ] [ text "Next" ]
         , button [ onClick Toggle ]
             [ if model.running then
@@ -45,12 +46,25 @@ viewControls model =
             , value (String.fromInt model.interval)
             ]
             []
-        , case model.code of
-            Ok { instructions } ->
-                instructions
-                    |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
-                    |> ul []
+        , h2 [] [ text "Parser Result" ]
+        , case model.code.program of
+            Ok subs ->
+                subs
+                    |> Dict.toList
+                    |> List.map viewSub
+                    |> List.foldr (++) []
+                    |> dl []
 
-            Err reason ->
-                text <| Debug.toString <| reason
+            Err err ->
+                text <| Debug.toString <| err
+        , text <| Debug.toString model.code
+        , h2 [] [ text "Stack" ]
+        , model.code.stack
+            |> List.map (\instruction -> li [] [ text <| Debug.toString <| instruction ])
+            |> ul []
         ]
+
+
+viewSub : ( String, List Instruction ) -> List (Html Msg)
+viewSub ( name, instructions ) =
+    dt [ style "font-family" "monospace" ] [ strong [] [ text ("sub " ++ name ++ "()") ] ] :: List.map (\instruction -> dd [ style "font-family" "monospace" ] [ text <| Debug.toString instruction ]) instructions

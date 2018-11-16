@@ -1,6 +1,7 @@
 module CodeTest exposing (tests)
 
 import Code exposing (Function, Instruction(..))
+import Dict exposing (Dict)
 import Expect
 import Parser exposing (DeadEnd, Problem(..))
 import Test exposing (..)
@@ -25,18 +26,17 @@ goInstructionTests =
         [ test "go();" <|
             \_ ->
                 "go();"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ SubCall "go" ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ SubCall "go" ])
         , test "go() ;" <|
             \_ ->
                 "go() ;"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ SubCall "go" ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ SubCall "go" ])
         , test "go () ;" <|
             \_ ->
                 "go () ;"
-                    |> Parser.run Code.parser
-                    |> Result.mapError firstProblem
+                    |> parse
                     |> Expect.equal (Err (ExpectingSymbol "("))
         ]
 
@@ -47,18 +47,17 @@ turnLeftInstructionTests =
         [ test "turnLeft();" <|
             \_ ->
                 "turnLeft();"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ SubCall "turnLeft" ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ SubCall "turnLeft" ])
         , test "turnLeft() ;" <|
             \_ ->
                 "turnLeft() ;"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ SubCall "turnLeft" ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ SubCall "turnLeft" ])
         , test "turnLeft () ;" <|
             \_ ->
                 "turnLeft () ;"
-                    |> Parser.run Code.parser
-                    |> Result.mapError firstProblem
+                    |> parse
                     |> Expect.equal (Err (ExpectingSymbol "("))
         ]
 
@@ -69,15 +68,13 @@ unknownSubInstructionTests =
         [ test "unknown();" <|
             \_ ->
                 "unknown();"
-                    |> Parser.run Code.parser
-                    |> Result.mapError firstProblem
-                    |> Expect.equal (Err (Problem "unknown is not defined"))
+                    |> parse
+                    |> Expect.equal (Ok [ SubCall "unknown" ])
         , test "unknown() ;" <|
             \_ ->
                 "unknown() ;"
-                    |> Parser.run Code.parser
-                    |> Result.mapError firstProblem
-                    |> Expect.equal (Err (Problem "unknown is not defined"))
+                    |> parse
+                    |> Expect.equal (Ok [ SubCall "unknown" ])
         ]
 
 
@@ -87,29 +84,29 @@ ifInstructionTests =
         [ test "if (true) {}" <|
             \_ ->
                 "if (true) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ If Code.True [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ If Code.True [] ])
         , test "multiline if (true) {}" <|
             \_ ->
                 """if (true) {
                 }"""
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ If Code.True [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ If Code.True [] ])
         , test "if ( true ) {}" <|
             \_ ->
                 "if ( true ) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ If Code.True [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ If Code.True [] ])
         , test "if (free()) {}" <|
             \_ ->
                 "if (free()) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ If Code.Free [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ If Code.Free [] ])
         , test "if ( free() ) {}" <|
             \_ ->
                 "if ( free() ) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ If Code.Free [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ If Code.Free [] ])
         ]
 
 
@@ -119,29 +116,29 @@ whileInstructionTests =
         [ test "while (true) {}" <|
             \_ ->
                 "while (true) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ While Code.True [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ While Code.True [] ])
         , test "multiline while (true) {}" <|
             \_ ->
                 """while (true) {
                 }"""
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ While Code.True [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ While Code.True [] ])
         , test "while ( true ) {}" <|
             \_ ->
                 "while ( true ) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ While Code.True [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ While Code.True [] ])
         , test "while (free()) {}" <|
             \_ ->
                 "while (free()) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ While Code.Free [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ While Code.Free [] ])
         , test "while ( free() ) {}" <|
             \_ ->
                 "while ( free() ) {}"
-                    |> Parser.run Code.parser
-                    |> Expect.equal (Ok { instructions = [ While Code.Free [] ], subs = [] })
+                    |> parse
+                    |> Expect.equal (Ok [ While Code.Free [] ])
         ]
 
 
@@ -150,3 +147,20 @@ firstProblem =
     List.head
         >> Maybe.map .problem
         >> Maybe.withDefault (Problem "I have no problems!")
+
+
+parse : String -> Result Problem (List Instruction)
+parse code =
+    let
+        wrappedCode =
+            "sub main() {" ++ code ++ "}"
+    in
+    case Parser.run Code.parser wrappedCode of
+        Ok subs ->
+            subs
+                |> Dict.get "main"
+                |> Maybe.map Ok
+                |> Maybe.withDefault (Err (Problem "I have no sub main"))
+
+        Err err ->
+            Err (firstProblem err)

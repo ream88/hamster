@@ -1,6 +1,6 @@
-module Model exposing (Model, init, initWorld)
+module Model exposing (Model, init, initCode, initWorld)
 
-import Code
+import Code exposing (Code)
 import Msg exposing (Msg)
 import Positive
 import Time exposing (Posix)
@@ -9,7 +9,7 @@ import World exposing (Direction(..), Error, Tile(..), World)
 
 type alias Model =
     { world : Result Error World
-    , code : Code.Model
+    , code : Code
     , running : Bool
     , interval : Int
     , lastTick : Posix
@@ -19,7 +19,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { world = initWorld
-      , code = Code.init
+      , code = initCode
       , running = False
       , interval = 750
       , lastTick = Time.millisToPosix 0
@@ -33,3 +33,8 @@ initWorld =
     World.init (Positive.fromInt 32) (Positive.fromInt 16)
         |> World.buildWalls
         |> World.set 1 14 (Hamster East)
+
+
+initCode : Code
+initCode =
+    Code.parse "sub main() {\n  \n}"

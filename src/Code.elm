@@ -1,10 +1,19 @@
-module Code exposing (Code, Function(..), Instruction(..), Model, append, init, parse, parser, pop, prepend, setInstructions)
+module Code exposing
+    ( Code
+    , Function(..)
+    , Instruction(..)
+    , append
+    , getSource
+    , getSub
+    , parse
+    , parser
+    , pop
+    , prepend
+    , setStack
+    )
 
+import Dict exposing (Dict)
 import Parser exposing (..)
-
-
-type Sub
-    = Sub String (List Instruction)
 
 
 type Instruction
@@ -13,62 +22,84 @@ type Instruction
     | While Function (List Instruction)
 
 
-
--- NOTE: Should Code be exported?
+type alias Subs =
+    Dict String (List Instruction)
 
 
 type alias Code =
-    { instructions : List Instruction, subs : List Sub }
+    { source : String
+    , program : Result (List DeadEnd) Subs
+    , stack : List Instruction
+    }
 
 
-type alias Model =
-    Result (List DeadEnd) Code
+parse : String -> Code
+parse source =
+    { source = source
+    , stack = [ SubCall "main" ]
+    , program = Parser.run parser source
+    }
 
 
-init : Model
-init =
-    Ok { instructions = [], subs = [] }
+pop : Code -> ( Maybe Instruction, List Instruction )
+pop { stack } =
+    case stack of
+        head :: tail ->
+            ( Just head, tail )
+
+        [] ->
+            ( Nothing, [] )
 
 
-pop : Model -> ( Maybe Instruction, List Instruction )
-pop model =
-    model
-        |> Result.map
-            (\{ instructions } ->
-                case instructions of
-                    head :: tail ->
-                        ( Just head, tail )
-
-                    [] ->
-                        ( Nothing, [] )
-            )
-        |> Result.withDefault ( Nothing, [] )
+prepend : Instruction -> Code -> Code
+prepend instruction model =
+    { model | stack = instruction :: model.stack }
 
 
-prepend : Instruction -> Model -> Model
-prepend instruction =
-    Result.map (\code -> { code | instructions = instruction :: code.instructions })
+append : Instruction -> Code -> Code
+append instruction model =
+    { model | stack = model.stack ++ [ instruction ] }
 
 
-append : Instruction -> Model -> Model
-append instruction =
-    Result.map (\code -> { code | instructions = code.instructions ++ [ instruction ] })
+setStack : List Instruction -> Code -> Code
+setStack newStack model =
+    { model | stack = newStack }
 
 
-setInstructions : List Instruction -> Model -> Model
-setInstructions newInstructions =
-    Result.map (\code -> { code | instructions = newInstructions })
+getSub : String -> Code -> Maybe (List Instruction)
+getSub name { program } =
+    case program of
+        Ok subs ->
+            Dict.get name subs
+
+        _ ->
+            Nothing
 
 
-parse : String -> Model -> Model
-parse text model =
-    Parser.run parser text
+getSource : Code -> String
+getSource { source } =
+    source
 
 
-parser : Parser Code
+parser : Parser Subs
 parser =
-    instructionsParser
-        |> Parser.map (\instructions -> { instructions = instructions, subs = [] })
+    subsParser
+
+
+subsParser : Parser Subs
+subsParser =
+    loop Dict.empty subsParserHelper
+
+
+subsParserHelper : Subs -> Parser (Step Subs Subs)
+subsParserHelper subs =
+    oneOf
+        [ succeed (\( name, instructions ) -> Loop (Dict.insert name instructions subs))
+            |. spaces
+            |= subParser
+            |. spaces
+        , succeed () |> Parser.map (\_ -> Done subs)
+        ]
 
 
 instructionsParser : Parser (List Instruction)
@@ -76,56 +107,33 @@ instructionsParser =
     loop [] instructionsParserHelper
 
 
-next : List Instruction -> Instruction -> Step (List Instruction) a
-next instructions instruction =
-    Loop (instruction :: instructions)
-
-
-done : List Instruction -> Step a (List Instruction)
-done instructions =
-    Done (List.reverse instructions)
-
-
 instructionsParserHelper : List Instruction -> Parser (Step (List Instruction) (List Instruction))
 instructionsParserHelper instructions =
     oneOf
-        [ succeed (next instructions)
+        [ succeed (\instruction -> Loop (instruction :: instructions))
             |. spaces
             |= ifParser
             |. spaces
-        , succeed (next instructions)
+        , succeed (\instruction -> Loop (instruction :: instructions))
             |. spaces
             |= whileParser
             |. spaces
-        , succeed (next instructions)
+        , succeed (\instruction -> Loop (instruction :: instructions))
             |. spaces
             |= subCallParser
             |. spaces
             |. symbol ";"
             |. spaces
-        , succeed (done instructions)
+        , succeed () |> Parser.map (\_ -> Done (List.reverse instructions))
         ]
 
 
 subCallParser : Parser Instruction
 subCallParser =
-    succeed ()
-        |. chompWhile Char.isAlpha
+    succeed SubCall
+        |= nameParser
         |. symbol "("
         |. symbol ")"
-        |> getChompedString
-        |> andThen
-            (\name ->
-                case String.filter Char.isAlpha name of
-                    "go" ->
-                        succeed (SubCall "go")
-
-                    "turnLeft" ->
-                        succeed (SubCall "turnLeft")
-
-                    unknown ->
-                        problem (unknown ++ " is not defined")
-            )
 
 
 ifParser : Parser Instruction
@@ -203,3 +211,34 @@ freeParser =
         |. keyword "free"
         |. symbol "("
         |. symbol ")"
+
+
+nameParser : Parser String
+nameParser =
+    succeed ()
+        |. chompWhile Char.isAlpha
+        |> getChompedString
+        |> andThen
+            (\string ->
+                if String.length string == 0 then
+                    problem "opps"
+
+                else
+                    commit string
+            )
+
+
+subParser : Parser ( String, List Instruction )
+subParser =
+    succeed Tuple.pair
+        |. keyword "sub"
+        |. spaces
+        |= nameParser
+        |. symbol "("
+        |. symbol ")"
+        |. spaces
+        |. symbol "{"
+        |. spaces
+        |= instructionsParser
+        |. spaces
+        |. symbol "}"
