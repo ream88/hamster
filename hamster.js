@@ -9231,7 +9231,7 @@ var author$project$View$viewTile = F3(
 						_List_fromArray(
 							[
 								rtfeldman$elm_css$Css$backgroundImage(
-								rtfeldman$elm_css$Css$url('assets/brick.png'))
+								rtfeldman$elm_css$Css$url('brick.png'))
 							]));
 				default:
 					var direction = tile.a;
@@ -9251,7 +9251,7 @@ var author$project$View$viewTile = F3(
 						_List_fromArray(
 							[
 								rtfeldman$elm_css$Css$backgroundImage(
-								rtfeldman$elm_css$Css$url('assets/hamster.png')),
+								rtfeldman$elm_css$Css$url('hamster.png')),
 								rtfeldman$elm_css$Css$transform(
 								rtfeldman$elm_css$Css$rotate(
 									rtfeldman$elm_css$Css$deg(
