@@ -21,6 +21,7 @@ then
   exit 1
 fi
 
+test "$(git rev-parse @{u})" = "$(git rev-parse HEAD)" || echo -e "$fail . is not clean, will not deploy!"; exit 1
 
 # Check git status of gh-pages
 
