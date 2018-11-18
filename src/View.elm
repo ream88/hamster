@@ -99,7 +99,10 @@ viewTile x y tile =
                     batch [ border ]
 
                 Wall ->
-                    batch [ backgroundImage (url "brick.png") ]
+                    batch
+                        [ backgroundImage <| linearGradient2 toRight (stop2 (hex "7f4c3d") (pct 0)) (stop2 (hex "7f4c3d") (pct 50)) [ stop2 (hex "804c3e") (pct 75), stop2 (hex "7f4b3d") (pct 100) ]
+                        , backgroundImage (url "brick.png")
+                        ]
 
                 Hamster direction ->
                     let
@@ -118,7 +121,8 @@ viewTile x y tile =
                                     90
                     in
                     batch
-                        [ backgroundImage (url "hamster.png")
+                        [ backgroundImage <| linearGradient2 toRight (stop2 (hex "82676c00") (pct 0)) (stop2 (hex "bda59a") (pct 50)) [ stop2 (hex "b98f70") (pct 75), stop2 (hex "85605a00") (pct 100) ]
+                        , backgroundImage (url "hamster.png")
                         , direction
                             |> directionToDeg
                             |> deg
