@@ -1,4 +1,5 @@
 const path = require('path')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
@@ -28,7 +29,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.join(__dirname, 'src', 'index.html'),
       hash: true
-    })
+    }),
+    new CopyWebpackPlugin([
+      { from: path.join(__dirname, 'assets', '*'), flatten: true }
+    ])
   ],
   optimization: {
     minimizer: [
@@ -46,5 +50,8 @@ module.exports = {
         }
       })
     ]
+  },
+  devServer: {
+    contentBase: path.join(__dirname, 'assets')
   }
 }

@@ -99,7 +99,7 @@ viewTile x y tile =
                     batch [ border ]
 
                 Wall ->
-                    batch [ backgroundImage (url "assets/brick.png") ]
+                    batch [ backgroundImage (url "brick.png") ]
 
                 Hamster direction ->
                     let
@@ -118,7 +118,7 @@ viewTile x y tile =
                                     90
                     in
                     batch
-                        [ backgroundImage (url "assets/hamster.png")
+                        [ backgroundImage (url "hamster.png")
                         , direction
                             |> directionToDeg
                             |> deg
