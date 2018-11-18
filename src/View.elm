@@ -8,7 +8,7 @@ import Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
-import Html.Styled.Lazy exposing (..)
+import Html.Styled.Keyed as Keyed
 import Model exposing (Model)
 import Msg exposing (Msg(..))
 import View.Sidebar as Sidebar
@@ -64,12 +64,22 @@ viewWorld maybeWorld =
                 |> Array.indexedMap
                     (\y row ->
                         row
-                            |> Array.indexedMap (\x -> lazyViewTile x y)
+                            |> Array.indexedMap
+                                (\x tile ->
+                                    let
+                                        key =
+                                            String.fromInt x ++ "," ++ String.fromInt y
+
+                                        html =
+                                            viewTile x y tile
+                                    in
+                                    ( key, html )
+                                )
                             |> Array.toList
                     )
                 |> Array.toList
                 |> List.foldr (++) []
-                |> div
+                |> Keyed.node "div"
                     [ css
                         [ Css.property "display" "grid"
                         , Css.property "grid-template-columns" ("repeat(" ++ (String.fromInt <| World.width maybeWorld) ++ ", 1fr)")
@@ -80,11 +90,6 @@ viewWorld maybeWorld =
 
         Err err ->
             viewError err
-
-
-lazyViewTile : Int -> Int -> Tile -> Html Msg
-lazyViewTile x y tile =
-    lazy3 viewTile x y tile
 
 
 viewTile : Int -> Int -> Tile -> Html Msg
