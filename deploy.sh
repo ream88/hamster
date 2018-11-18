@@ -5,23 +5,23 @@ green="\033[1;32m"
 red="\033[1;31m"
 reset="\033[0m"
 
-ok="$green[OK]$reset"
-fail="$red[FAIL]$reset"
+function fail {
+  echo -e "$red[FAIL]$reset $1"
+  exit 1
+}
+
+function ok {
+  echo -e "$green[OK]$reset $1"
+  exit 0
+}
 
 pwd=$(pwd)
 dist="./dist"
 
-
 # Check git status of master
 
-status=$(git status --porcelain)
-if [ -n "$status" ]
-then
-  echo -e "$fail . is not clean, will not deploy!"
-  exit 1
-fi
-
-test "$(git rev-parse @{u})" = "$(git rev-parse HEAD)" || echo -e "$fail . is not clean, will not deploy!"; exit 1
+test -z "$(git status --porcelain)" || fail ". is not clean, will not deploy!"
+test "$(git rev-parse @{u})" = "$(git rev-parse HEAD)" || fail ". is not pushed yet, will not deploy!"
 
 # Check git status of gh-pages
 
@@ -29,17 +29,11 @@ cd $dist
 status=$(git status --porcelain)
 cd $pwd
 
-if [ -n "$status" ]
-then
-  echo -e "$fail ./dist is not clean, will not deploy!"
-  exit 1
-fi
-
+test -z "$status" || fail "./dist is not clean, will not deploy!"
 
 # Run webpack
 
 NODE_ENV=production npx webpack -p --silent
-
 
 # Check for changes
 
@@ -47,20 +41,15 @@ cd $dist
 status=$(git status --porcelain)
 cd $pwd
 
-if [ -z "$status" ]
-then
-  echo -e "$fail ./dist did not change, nothing to deploy!"
-  exit 1
-fi
-
+test -n "$status" || fail "./dist did not change, nothing to deploy!"
 
 # Commit changes
 
 sha=$(git rev-parse HEAD)
 
 cd $dist
-git commit --all -m "Deploy $sha"
-git push
+git commit --all -m "Deploy $sha" --quiet
+git push --quiet
 cd $pwd
 
-echo -e "$ok Deployed to https://hamster.world"
+ok "Deployed to https://hamster.world"
