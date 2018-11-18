@@ -7346,6 +7346,419 @@ var rtfeldman$elm_css$Css$angleConverter = F2(
 	});
 var rtfeldman$elm_css$Css$deg = rtfeldman$elm_css$Css$angleConverter('deg');
 var rtfeldman$elm_css$Css$height = rtfeldman$elm_css$Css$prop1('height');
+var elm$core$String$foldr = _String_foldr;
+var elm$core$String$toList = function (string) {
+	return A3(elm$core$String$foldr, elm$core$List$cons, _List_Nil, string);
+};
+var elm$core$String$cons = _String_cons;
+var rtfeldman$elm_css$Css$withPrecedingHash = function (str) {
+	return A2(elm$core$String$startsWith, '#', str) ? str : A2(elm$core$String$cons, '#', str);
+};
+var rtfeldman$elm_css$Css$erroneousHex = function (str) {
+	return {
+		aB: 1,
+		aD: 0,
+		C: 0,
+		aF: 0,
+		aM: 0,
+		cY: rtfeldman$elm_css$Css$withPrecedingHash(str)
+	};
+};
+var elm$core$String$fromList = _String_fromList;
+var elm$core$String$toLower = _String_toLower;
+var elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(xs);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm$core$Result$mapError = F2(
+	function (f, result) {
+		if (!result.$) {
+			var v = result.a;
+			return elm$core$Result$Ok(v);
+		} else {
+			var e = result.a;
+			return elm$core$Result$Err(
+				f(e));
+		}
+	});
+var elm$core$Basics$pow = _Basics_pow;
+var elm$core$String$fromChar = function (_char) {
+	return A2(elm$core$String$cons, _char, '');
+};
+var rtfeldman$elm_hex$Hex$fromStringHelp = F3(
+	function (position, chars, accumulated) {
+		fromStringHelp:
+		while (true) {
+			if (!chars.b) {
+				return elm$core$Result$Ok(accumulated);
+			} else {
+				var _char = chars.a;
+				var rest = chars.b;
+				switch (_char) {
+					case '0':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated;
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '1':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + A2(elm$core$Basics$pow, 16, position);
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '2':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (2 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '3':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (3 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '4':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (4 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '5':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (5 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '6':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (6 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '7':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (7 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '8':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (8 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '9':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (9 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'a':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (10 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'b':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (11 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'c':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (12 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'd':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (13 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'e':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (14 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'f':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (15 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					default:
+						var nonHex = _char;
+						return elm$core$Result$Err(
+							elm$core$String$fromChar(nonHex) + ' is not a valid hexadecimal character.');
+				}
+			}
+		}
+	});
+var rtfeldman$elm_hex$Hex$fromString = function (str) {
+	if (elm$core$String$isEmpty(str)) {
+		return elm$core$Result$Err('Empty strings are not valid hexadecimal strings.');
+	} else {
+		var result = function () {
+			if (A2(elm$core$String$startsWith, '-', str)) {
+				var list = A2(
+					elm$core$Maybe$withDefault,
+					_List_Nil,
+					elm$core$List$tail(
+						elm$core$String$toList(str)));
+				return A2(
+					elm$core$Result$map,
+					elm$core$Basics$negate,
+					A3(
+						rtfeldman$elm_hex$Hex$fromStringHelp,
+						elm$core$List$length(list) - 1,
+						list,
+						0));
+			} else {
+				return A3(
+					rtfeldman$elm_hex$Hex$fromStringHelp,
+					elm$core$String$length(str) - 1,
+					elm$core$String$toList(str),
+					0);
+			}
+		}();
+		var formatError = function (err) {
+			return A2(
+				elm$core$String$join,
+				' ',
+				_List_fromArray(
+					['\"' + (str + '\"'), 'is not a valid hexadecimal string because', err]));
+		};
+		return A2(elm$core$Result$mapError, formatError, result);
+	}
+};
+var rtfeldman$elm_css$Css$validHex = F5(
+	function (str, _n0, _n1, _n2, _n3) {
+		var r1 = _n0.a;
+		var r2 = _n0.b;
+		var g1 = _n1.a;
+		var g2 = _n1.b;
+		var b1 = _n2.a;
+		var b2 = _n2.b;
+		var a1 = _n3.a;
+		var a2 = _n3.b;
+		var toResult = A2(
+			elm$core$Basics$composeR,
+			elm$core$String$fromList,
+			A2(elm$core$Basics$composeR, elm$core$String$toLower, rtfeldman$elm_hex$Hex$fromString));
+		var results = _Utils_Tuple2(
+			_Utils_Tuple2(
+				toResult(
+					_List_fromArray(
+						[r1, r2])),
+				toResult(
+					_List_fromArray(
+						[g1, g2]))),
+			_Utils_Tuple2(
+				toResult(
+					_List_fromArray(
+						[b1, b2])),
+				toResult(
+					_List_fromArray(
+						[a1, a2]))));
+		if ((((!results.a.a.$) && (!results.a.b.$)) && (!results.b.a.$)) && (!results.b.b.$)) {
+			var _n5 = results.a;
+			var red = _n5.a.a;
+			var green = _n5.b.a;
+			var _n6 = results.b;
+			var blue = _n6.a.a;
+			var alpha = _n6.b.a;
+			return {
+				aB: alpha / 255,
+				aD: blue,
+				C: 0,
+				aF: green,
+				aM: red,
+				cY: rtfeldman$elm_css$Css$withPrecedingHash(str)
+			};
+		} else {
+			return rtfeldman$elm_css$Css$erroneousHex(str);
+		}
+	});
+var rtfeldman$elm_css$Css$hex = function (str) {
+	var withoutHash = A2(elm$core$String$startsWith, '#', str) ? A2(elm$core$String$dropLeft, 1, str) : str;
+	var _n0 = elm$core$String$toList(withoutHash);
+	_n0$4:
+	while (true) {
+		if ((_n0.b && _n0.b.b) && _n0.b.b.b) {
+			if (!_n0.b.b.b.b) {
+				var r = _n0.a;
+				var _n1 = _n0.b;
+				var g = _n1.a;
+				var _n2 = _n1.b;
+				var b = _n2.a;
+				return A5(
+					rtfeldman$elm_css$Css$validHex,
+					str,
+					_Utils_Tuple2(r, r),
+					_Utils_Tuple2(g, g),
+					_Utils_Tuple2(b, b),
+					_Utils_Tuple2('f', 'f'));
+			} else {
+				if (!_n0.b.b.b.b.b) {
+					var r = _n0.a;
+					var _n3 = _n0.b;
+					var g = _n3.a;
+					var _n4 = _n3.b;
+					var b = _n4.a;
+					var _n5 = _n4.b;
+					var a = _n5.a;
+					return A5(
+						rtfeldman$elm_css$Css$validHex,
+						str,
+						_Utils_Tuple2(r, r),
+						_Utils_Tuple2(g, g),
+						_Utils_Tuple2(b, b),
+						_Utils_Tuple2(a, a));
+				} else {
+					if (_n0.b.b.b.b.b.b) {
+						if (!_n0.b.b.b.b.b.b.b) {
+							var r1 = _n0.a;
+							var _n6 = _n0.b;
+							var r2 = _n6.a;
+							var _n7 = _n6.b;
+							var g1 = _n7.a;
+							var _n8 = _n7.b;
+							var g2 = _n8.a;
+							var _n9 = _n8.b;
+							var b1 = _n9.a;
+							var _n10 = _n9.b;
+							var b2 = _n10.a;
+							return A5(
+								rtfeldman$elm_css$Css$validHex,
+								str,
+								_Utils_Tuple2(r1, r2),
+								_Utils_Tuple2(g1, g2),
+								_Utils_Tuple2(b1, b2),
+								_Utils_Tuple2('f', 'f'));
+						} else {
+							if (_n0.b.b.b.b.b.b.b.b && (!_n0.b.b.b.b.b.b.b.b.b)) {
+								var r1 = _n0.a;
+								var _n11 = _n0.b;
+								var r2 = _n11.a;
+								var _n12 = _n11.b;
+								var g1 = _n12.a;
+								var _n13 = _n12.b;
+								var g2 = _n13.a;
+								var _n14 = _n13.b;
+								var b1 = _n14.a;
+								var _n15 = _n14.b;
+								var b2 = _n15.a;
+								var _n16 = _n15.b;
+								var a1 = _n16.a;
+								var _n17 = _n16.b;
+								var a2 = _n17.a;
+								return A5(
+									rtfeldman$elm_css$Css$validHex,
+									str,
+									_Utils_Tuple2(r1, r2),
+									_Utils_Tuple2(g1, g2),
+									_Utils_Tuple2(b1, b2),
+									_Utils_Tuple2(a1, a2));
+							} else {
+								break _n0$4;
+							}
+						}
+					} else {
+						break _n0$4;
+					}
+				}
+			}
+		} else {
+			break _n0$4;
+		}
+	}
+	return rtfeldman$elm_css$Css$erroneousHex(str);
+};
+var elm$core$String$append = _String_append;
+var rtfeldman$elm_css$Css$collectStops = elm$core$List$map(
+	function (_n0) {
+		var c = _n0.a;
+		var len = _n0.b;
+		return A2(
+			elm$core$String$append,
+			c.cY,
+			A2(
+				elm$core$Maybe$withDefault,
+				'',
+				A2(
+					elm$core$Maybe$map,
+					A2(
+						elm$core$Basics$composeL,
+						elm$core$String$cons(' '),
+						function ($) {
+							return $.cY;
+						}),
+					len)));
+	});
+var rtfeldman$elm_css$Css$cssFunction = F2(
+	function (funcName, args) {
+		return funcName + ('(' + (A2(elm$core$String$join, ', ', args) + ')'));
+	});
+var rtfeldman$elm_css$Css$linearGradient2 = F4(
+	function (direction, firstStop, secondStop, otherStops) {
+		return {
+			ab: 0,
+			d: 0,
+			cY: A2(
+				rtfeldman$elm_css$Css$cssFunction,
+				'linear-gradient',
+				A2(
+					elm$core$List$cons,
+					direction.cY,
+					rtfeldman$elm_css$Css$collectStops(
+						_Utils_ap(
+							_List_fromArray(
+								[firstStop, secondStop]),
+							otherStops))))
+		};
+	});
 var rtfeldman$elm_css$Css$PercentageUnits = 0;
 var rtfeldman$elm_css$Css$Internal$lengthConverter = F3(
 	function (units, unitLabel, numericValue) {
@@ -7374,10 +7787,6 @@ var rtfeldman$elm_css$Css$Internal$lengthConverter = F3(
 var rtfeldman$elm_css$Css$pct = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, '%');
 var rtfeldman$elm_css$Css$PxUnits = 0;
 var rtfeldman$elm_css$Css$px = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, 'px');
-var rtfeldman$elm_css$Css$cssFunction = F2(
-	function (funcName, args) {
-		return funcName + ('(' + (A2(elm$core$String$join, ', ', args) + ')'));
-	});
 var rtfeldman$elm_css$Css$rgba = F4(
 	function (r, g, b, alpha) {
 		return {
@@ -7412,6 +7821,13 @@ var rtfeldman$elm_css$Css$rotate = function (_n0) {
 				[value]))
 	};
 };
+var rtfeldman$elm_css$Css$stop2 = F2(
+	function (c, len) {
+		return _Utils_Tuple2(
+			c,
+			elm$core$Maybe$Just(len));
+	});
+var rtfeldman$elm_css$Css$toRight = {A: 0, cY: 'to right'};
 var elm$core$List$isEmpty = function (xs) {
 	if (!xs.b) {
 		return true;
@@ -7539,7 +7955,6 @@ var elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
 };
-var elm$core$String$cons = _String_cons;
 var rtfeldman$elm_css$Css$Preprocess$stylesheet = function (snippets) {
 	return {bA: elm$core$Maybe$Nothing, bM: _List_Nil, bX: _List_Nil, cd: snippets};
 };
@@ -7562,15 +7977,6 @@ var elm$core$List$concatMap = F2(
 var rtfeldman$elm_css$Css$Preprocess$unwrapSnippet = function (_n0) {
 	var declarations = _n0;
 	return declarations;
-};
-var elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(xs);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
 };
 var elm$core$List$takeReverse = F3(
 	function (n, list, kept) {
@@ -8234,7 +8640,6 @@ var rtfeldman$elm_css$Css$Structure$styleBlockToMediaRule = F2(
 		}
 	});
 var rtfeldman$elm_css$Hash$murmurSeed = 15739;
-var elm$core$String$fromList = _String_fromList;
 var elm$core$Basics$modBy = _Basics_modBy;
 var rtfeldman$elm_hex$Hex$unsafeToDigit = function (num) {
 	unsafeToDigit:
@@ -8905,7 +9310,6 @@ var rtfeldman$elm_css$Css$Structure$Output$emitProperties = function (properties
 			A2(elm$core$Basics$composeL, rtfeldman$elm_css$Css$Structure$Output$indent, rtfeldman$elm_css$Css$Structure$Output$emitProperty),
 			properties));
 };
-var elm$core$String$append = _String_append;
 var rtfeldman$elm_css$Css$Structure$Output$pseudoElementToString = function (_n0) {
 	var str = _n0;
 	return '::' + str;
@@ -9231,6 +9635,29 @@ var author$project$View$viewTile = F3(
 						_List_fromArray(
 							[
 								rtfeldman$elm_css$Css$backgroundImage(
+								A4(
+									rtfeldman$elm_css$Css$linearGradient2,
+									rtfeldman$elm_css$Css$toRight,
+									A2(
+										rtfeldman$elm_css$Css$stop2,
+										rtfeldman$elm_css$Css$hex('7f4c3d'),
+										rtfeldman$elm_css$Css$pct(0)),
+									A2(
+										rtfeldman$elm_css$Css$stop2,
+										rtfeldman$elm_css$Css$hex('7f4c3d'),
+										rtfeldman$elm_css$Css$pct(50)),
+									_List_fromArray(
+										[
+											A2(
+											rtfeldman$elm_css$Css$stop2,
+											rtfeldman$elm_css$Css$hex('804c3e'),
+											rtfeldman$elm_css$Css$pct(75)),
+											A2(
+											rtfeldman$elm_css$Css$stop2,
+											rtfeldman$elm_css$Css$hex('7f4b3d'),
+											rtfeldman$elm_css$Css$pct(100))
+										]))),
+								rtfeldman$elm_css$Css$backgroundImage(
 								rtfeldman$elm_css$Css$url('brick.png'))
 							]));
 				default:
@@ -9250,6 +9677,29 @@ var author$project$View$viewTile = F3(
 					return rtfeldman$elm_css$Css$batch(
 						_List_fromArray(
 							[
+								rtfeldman$elm_css$Css$backgroundImage(
+								A4(
+									rtfeldman$elm_css$Css$linearGradient2,
+									rtfeldman$elm_css$Css$toRight,
+									A2(
+										rtfeldman$elm_css$Css$stop2,
+										rtfeldman$elm_css$Css$hex('82676c00'),
+										rtfeldman$elm_css$Css$pct(0)),
+									A2(
+										rtfeldman$elm_css$Css$stop2,
+										rtfeldman$elm_css$Css$hex('bda59a'),
+										rtfeldman$elm_css$Css$pct(50)),
+									_List_fromArray(
+										[
+											A2(
+											rtfeldman$elm_css$Css$stop2,
+											rtfeldman$elm_css$Css$hex('b98f70'),
+											rtfeldman$elm_css$Css$pct(75)),
+											A2(
+											rtfeldman$elm_css$Css$stop2,
+											rtfeldman$elm_css$Css$hex('85605a00'),
+											rtfeldman$elm_css$Css$pct(100))
+										]))),
 								rtfeldman$elm_css$Css$backgroundImage(
 								rtfeldman$elm_css$Css$url('hamster.png')),
 								rtfeldman$elm_css$Css$transform(
