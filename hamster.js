@@ -7353,6 +7353,9 @@ var rtfeldman$elm_css$Css$property = F2(
 	function (key, value) {
 		return rtfeldman$elm_css$Css$Preprocess$AppendProperty(key + (':' + value));
 	});
+var rtfeldman$elm_css$Css$backgroundColor = function (c) {
+	return A2(rtfeldman$elm_css$Css$property, 'background-color', c.cY);
+};
 var rtfeldman$elm_css$Css$prop1 = F2(
 	function (key, arg) {
 		return A2(rtfeldman$elm_css$Css$property, key, arg.cY);
@@ -7363,18 +7366,6 @@ var rtfeldman$elm_css$Css$Preprocess$ApplyStyles = function (a) {
 	return {$: 6, a: a};
 };
 var rtfeldman$elm_css$Css$batch = rtfeldman$elm_css$Css$Preprocess$ApplyStyles;
-var rtfeldman$elm_css$Css$prop4 = F5(
-	function (key, argA, argB, argC, argD) {
-		return A2(
-			rtfeldman$elm_css$Css$property,
-			key,
-			A2(
-				elm$core$String$join,
-				' ',
-				_List_fromArray(
-					[argA.cY, argB.cY, argC.cY, argD.cY])));
-	});
-var rtfeldman$elm_css$Css$boxShadow4 = rtfeldman$elm_css$Css$prop4('box-shadow');
 var elm$core$String$fromFloat = _String_fromNumber;
 var rtfeldman$elm_css$Css$Structure$Compatible = 0;
 var rtfeldman$elm_css$Css$angleConverter = F2(
@@ -7830,29 +7821,6 @@ var rtfeldman$elm_css$Css$Internal$lengthConverter = F3(
 var rtfeldman$elm_css$Css$pct = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, '%');
 var rtfeldman$elm_css$Css$PxUnits = 0;
 var rtfeldman$elm_css$Css$px = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, 'px');
-var rtfeldman$elm_css$Css$rgba = F4(
-	function (r, g, b, alpha) {
-		return {
-			aB: alpha,
-			aD: b,
-			C: 0,
-			aF: g,
-			aM: r,
-			cY: A2(
-				rtfeldman$elm_css$Css$cssFunction,
-				'rgba',
-				_Utils_ap(
-					A2(
-						elm$core$List$map,
-						elm$core$String$fromInt,
-						_List_fromArray(
-							[r, g, b])),
-					_List_fromArray(
-						[
-							elm$core$String$fromFloat(alpha)
-						])))
-		};
-	});
 var rtfeldman$elm_css$Css$rotate = function (_n0) {
 	var value = _n0.cY;
 	return {
@@ -9654,18 +9622,17 @@ var author$project$View$viewTile = F3(
 					return A3(author$project$Msg$SetTile, x, y, tile);
 			}
 		}();
-		var border = A4(
-			rtfeldman$elm_css$Css$boxShadow4,
-			rtfeldman$elm_css$Css$px(0),
-			rtfeldman$elm_css$Css$px(0),
-			rtfeldman$elm_css$Css$px(1),
-			A4(rtfeldman$elm_css$Css$rgba, 0, 0, 0, 0.25));
 		var backgroundImage_ = function () {
 			switch (tile.$) {
 				case 0:
 					return rtfeldman$elm_css$Css$batch(
 						_List_fromArray(
-							[border]));
+							[
+								rtfeldman$elm_css$Css$backgroundColor(
+								rtfeldman$elm_css$Css$hex('fff')),
+								rtfeldman$elm_css$Css$backgroundImage(
+								rtfeldman$elm_css$Css$url('empty.svg'))
+							]));
 				case 1:
 					return rtfeldman$elm_css$Css$batch(
 						_List_fromArray(
@@ -9694,7 +9661,7 @@ var author$project$View$viewTile = F3(
 											rtfeldman$elm_css$Css$pct(100))
 										]))),
 								rtfeldman$elm_css$Css$backgroundImage(
-								rtfeldman$elm_css$Css$url('brick.png'))
+								rtfeldman$elm_css$Css$url('wall.png'))
 							]));
 				default:
 					var direction = tile.a;
@@ -9741,8 +9708,7 @@ var author$project$View$viewTile = F3(
 								rtfeldman$elm_css$Css$transform(
 								rtfeldman$elm_css$Css$rotate(
 									rtfeldman$elm_css$Css$deg(
-										directionToDeg(direction)))),
-								border
+										directionToDeg(direction))))
 							]));
 			}
 		}();
@@ -10175,6 +10141,19 @@ var author$project$View$Sidebar$viewControls = function (model) {
 				author$project$Code$getStack(model.q))
 			]));
 };
+var rtfeldman$elm_css$Css$prop3 = F4(
+	function (key, argA, argB, argC) {
+		return A2(
+			rtfeldman$elm_css$Css$property,
+			key,
+			A2(
+				elm$core$String$join,
+				' ',
+				_List_fromArray(
+					[argA.cY, argB.cY, argC.cY])));
+	});
+var rtfeldman$elm_css$Css$border3 = rtfeldman$elm_css$Css$prop3('border');
+var rtfeldman$elm_css$Css$marginLeft = rtfeldman$elm_css$Css$prop1('margin-left');
 var rtfeldman$elm_css$Css$UnitlessFloat = 0;
 var rtfeldman$elm_css$Css$num = function (val) {
 	return {
@@ -10188,6 +10167,8 @@ var rtfeldman$elm_css$Css$num = function (val) {
 	};
 };
 var rtfeldman$elm_css$Css$order = rtfeldman$elm_css$Css$prop1('order');
+var rtfeldman$elm_css$Css$padding = rtfeldman$elm_css$Css$prop1('padding');
+var rtfeldman$elm_css$Css$solid = {u: 0, Z: 0, cY: 'solid'};
 var author$project$View$Sidebar$view = function (model) {
 	return A2(
 		rtfeldman$elm_css$Html$Styled$div,
@@ -10198,7 +10179,18 @@ var author$project$View$Sidebar$view = function (model) {
 					[
 						rtfeldman$elm_css$Css$order(
 						rtfeldman$elm_css$Css$num(2)),
-						A2(rtfeldman$elm_css$Css$property, 'grid-row', 'span 2')
+						A2(rtfeldman$elm_css$Css$property, 'grid-row', 'span 2'),
+						rtfeldman$elm_css$Css$backgroundColor(
+						rtfeldman$elm_css$Css$hex('fff')),
+						rtfeldman$elm_css$Css$padding(
+						rtfeldman$elm_css$Css$px(16)),
+						A3(
+						rtfeldman$elm_css$Css$border3,
+						rtfeldman$elm_css$Css$px(2),
+						rtfeldman$elm_css$Css$solid,
+						rtfeldman$elm_css$Css$hex('000')),
+						rtfeldman$elm_css$Css$marginLeft(
+						rtfeldman$elm_css$Css$px(32))
 					]))
 			]),
 		_List_fromArray(
@@ -10275,8 +10267,25 @@ var rtfeldman$elm_css$Css$alignItems = function (fn) {
 		'align-items',
 		fn(rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty));
 };
-var rtfeldman$elm_css$Css$center = rtfeldman$elm_css$Css$prop1('center');
+var rtfeldman$elm_css$Css$borderBox = {bb: 0, aV: 0, cY: 'border-box'};
+var rtfeldman$elm_css$Css$borderColor = function (c) {
+	return A2(rtfeldman$elm_css$Css$property, 'border-color', c.cY);
+};
+var rtfeldman$elm_css$Css$boxSizing = rtfeldman$elm_css$Css$prop1('box-sizing');
 var rtfeldman$elm_css$Css$displayFlex = A2(rtfeldman$elm_css$Css$property, 'display', 'flex');
+var rtfeldman$elm_css$Css$flexStart = rtfeldman$elm_css$Css$prop1('flex-start');
+var rtfeldman$elm_css$Css$Preprocess$ExtendSelector = F2(
+	function (a, b) {
+		return {$: 1, a: a, b: b};
+	});
+var rtfeldman$elm_css$Css$Structure$PseudoClassSelector = function (a) {
+	return {$: 2, a: a};
+};
+var rtfeldman$elm_css$Css$pseudoClass = function (_class) {
+	return rtfeldman$elm_css$Css$Preprocess$ExtendSelector(
+		rtfeldman$elm_css$Css$Structure$PseudoClassSelector(_class));
+};
+var rtfeldman$elm_css$Css$focus = rtfeldman$elm_css$Css$pseudoClass('focus');
 var rtfeldman$elm_css$Css$justifyContent = function (fn) {
 	return A3(
 		rtfeldman$elm_css$Css$Internal$getOverloadedProperty,
@@ -10284,6 +10293,10 @@ var rtfeldman$elm_css$Css$justifyContent = function (fn) {
 		'justify-content',
 		fn(rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty));
 };
+var rtfeldman$elm_css$Css$none = {ab: 0, bw: 0, u: 0, c: 0, j: 0, cD: 0, bN: 0, bf: 0, an: 0, T: 0, D: 0, e: 0, d: 0, bh: 0, a1: 0, cO: 0, A: 0, a3: 0, cQ: 0, at: 0, _: 0, y: 0, i: 0, cW: 0, cY: 'none'};
+var rtfeldman$elm_css$Css$outline = rtfeldman$elm_css$Css$prop1('outline');
+var rtfeldman$elm_css$Css$paddingTop = rtfeldman$elm_css$Css$prop1('padding-top');
+var rtfeldman$elm_css$Css$resize = rtfeldman$elm_css$Css$prop1('resize');
 var rtfeldman$elm_css$Css$sansSerif = {R: 0, cY: 'sans-serif'};
 var rtfeldman$elm_css$Css$VhUnits = 0;
 var rtfeldman$elm_css$Css$vh = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, 'vh');
@@ -10313,7 +10326,12 @@ var author$project$View$mainView = function (model) {
 								function ($) {
 								return $.cY;
 							}(rtfeldman$elm_css$Css$sansSerif)
-							]))
+							])),
+						rtfeldman$elm_css$Css$padding(
+						rtfeldman$elm_css$Css$px(32)),
+						rtfeldman$elm_css$Css$boxSizing(rtfeldman$elm_css$Css$borderBox),
+						rtfeldman$elm_css$Css$backgroundImage(
+						rtfeldman$elm_css$Css$url('background.svg'))
 					]))
 			]),
 		_List_fromArray(
@@ -10326,8 +10344,8 @@ var author$project$View$mainView = function (model) {
 						_List_fromArray(
 							[
 								rtfeldman$elm_css$Css$displayFlex,
-								rtfeldman$elm_css$Css$justifyContent(rtfeldman$elm_css$Css$center),
-								rtfeldman$elm_css$Css$alignItems(rtfeldman$elm_css$Css$center),
+								rtfeldman$elm_css$Css$justifyContent(rtfeldman$elm_css$Css$flexStart),
+								rtfeldman$elm_css$Css$alignItems(rtfeldman$elm_css$Css$flexStart),
 								rtfeldman$elm_css$Css$order(
 								rtfeldman$elm_css$Css$num(1))
 							]))
@@ -10344,7 +10362,9 @@ var author$project$View$mainView = function (model) {
 						_List_fromArray(
 							[
 								rtfeldman$elm_css$Css$order(
-								rtfeldman$elm_css$Css$num(3))
+								rtfeldman$elm_css$Css$num(3)),
+								rtfeldman$elm_css$Css$paddingTop(
+								rtfeldman$elm_css$Css$px(16))
 							]))
 					]),
 				_List_fromArray(
@@ -10360,6 +10380,14 @@ var author$project$View$mainView = function (model) {
 										rtfeldman$elm_css$Css$pct(100)),
 										rtfeldman$elm_css$Css$height(
 										rtfeldman$elm_css$Css$pct(100)),
+										A3(
+										rtfeldman$elm_css$Css$border3,
+										rtfeldman$elm_css$Css$px(2),
+										rtfeldman$elm_css$Css$solid,
+										rtfeldman$elm_css$Css$hex('000')),
+										rtfeldman$elm_css$Css$padding(
+										rtfeldman$elm_css$Css$px(16)),
+										rtfeldman$elm_css$Css$boxSizing(rtfeldman$elm_css$Css$borderBox),
 										rtfeldman$elm_css$Css$fontFamilies(
 										_List_fromArray(
 											[
@@ -10378,6 +10406,14 @@ var author$project$View$mainView = function (model) {
 												function ($) {
 												return $.cY;
 											}(rtfeldman$elm_css$Css$monospace)
+											])),
+										rtfeldman$elm_css$Css$resize(rtfeldman$elm_css$Css$none),
+										rtfeldman$elm_css$Css$focus(
+										_List_fromArray(
+											[
+												rtfeldman$elm_css$Css$outline(rtfeldman$elm_css$Css$none),
+												rtfeldman$elm_css$Css$borderColor(
+												rtfeldman$elm_css$Css$hex('F08F46'))
 											]))
 									])),
 								rtfeldman$elm_css$Html$Styled$Events$onInput(author$project$Msg$ParseCode),
