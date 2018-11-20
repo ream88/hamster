@@ -35,7 +35,23 @@ update msg model =
             ( { model | code = Code.append instruction model.code }, Cmd.none )
 
         Toggle ->
-            ( { model | running = not model.running }, Cmd.none )
+            let
+                newRunning =
+                    not model.running
+
+                newCode =
+                    if List.isEmpty (Code.getStack model.code) then
+                        model.code |> Code.prepend (SubCall "main")
+
+                    else
+                        model.code
+            in
+            ( { model
+                | running = newRunning
+                , code = newCode
+              }
+            , Cmd.none
+            )
 
         SetInterval (Just interval) ->
             ( { model | interval = interval }, Cmd.none )

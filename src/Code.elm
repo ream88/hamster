@@ -40,7 +40,7 @@ parse : String -> Code
 parse source =
     Code
         { source = source
-        , stack = [ SubCall "main" ]
+        , stack = []
         , program = Parser.run parser source
         }
 
