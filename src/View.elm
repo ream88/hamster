@@ -5,6 +5,7 @@ import Browser exposing (Document)
 import Browser.Events as Events
 import Code exposing (Function, Instruction(..))
 import Css exposing (..)
+import Css.Extra as Css exposing (..)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
@@ -30,14 +31,17 @@ mainView model =
             , Css.property "grid-template-columns" "auto 400px"
             , Css.property "grid-template-rows" "1fr 1fr"
             , fontFamilies [ "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", .value sansSerif ]
-            , padding (px 32)
+            , padding mediumSpace
             , boxSizing borderBox
             , backgroundImage (url "background.svg")
+            , fontSize mediumFontSize
+            , lineHeight mediumLineHeight
             ]
         ]
         [ div
             [ css
                 [ displayFlex
+                , maxHeight (px (16 * 32))
                 , justifyContent flexStart
                 , alignItems flexStart
                 , order (num 1)
@@ -47,7 +51,7 @@ mainView model =
         , div
             [ css
                 [ order (num 3)
-                , paddingTop (px 16)
+                , paddingTop mediumSpace
                 ]
             ]
             [ textarea
@@ -55,7 +59,7 @@ mainView model =
                     [ Css.width (pct 100)
                     , Css.height (pct 100)
                     , border3 (px 2) solid (hex "000")
-                    , padding (px 16)
+                    , padding smallSpace
                     , boxSizing borderBox
                     , fontFamilies [ "Consolas", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Monaco", "Courier New", "Courier", .value monospace ]
                     , resize none
@@ -160,8 +164,8 @@ viewTile x y tile =
     in
     span
         [ css
-            [ Css.width (px 32)
-            , Css.height (px 32)
+            [ Css.width mediumSpace
+            , Css.height mediumSpace
             , backgroundSize (pct 100)
             , backgroundImage_
             ]
