@@ -9,6 +9,7 @@ import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Html.Styled.Keyed as Keyed
+import Html.Styled.Lazy as Lazy
 import Model exposing (Model)
 import Msg exposing (Msg(..))
 import View.Sidebar as Sidebar
@@ -80,17 +81,7 @@ viewWorld maybeWorld =
                 |> Array.indexedMap
                     (\y row ->
                         row
-                            |> Array.indexedMap
-                                (\x tile ->
-                                    let
-                                        key =
-                                            String.fromInt x ++ "," ++ String.fromInt y
-
-                                        html =
-                                            viewTile x y tile
-                                    in
-                                    ( key, html )
-                                )
+                            |> Array.indexedMap (\x tile -> ( String.fromInt x ++ "," ++ String.fromInt y, lazyViewTile x y tile ))
                             |> Array.toList
                     )
                 |> Array.toList
@@ -106,6 +97,11 @@ viewWorld maybeWorld =
 
         Err err ->
             viewError err
+
+
+lazyViewTile : Int -> Int -> Tile -> Html Msg
+lazyViewTile x y tile =
+    Lazy.lazy3 viewTile x y tile
 
 
 viewTile : Int -> Int -> Tile -> Html Msg
