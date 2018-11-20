@@ -5508,6 +5508,9 @@ var author$project$Main$subscriptions = function (model) {
 				model.X ? elm$browser$Browser$Events$onAnimationFrame(author$project$Msg$Tick) : elm$core$Platform$Sub$none
 			]));
 };
+var author$project$Code$SubCall = function (a) {
+	return {$: 0, a: a};
+};
 var author$project$Code$Code = elm$core$Basics$identity;
 var author$project$Code$append = F2(
 	function (instruction, _n0) {
@@ -5521,8 +5524,9 @@ var author$project$Code$append = F2(
 						[instruction]))
 			});
 	});
-var author$project$Code$SubCall = function (a) {
-	return {$: 0, a: a};
+var author$project$Code$getStack = function (_n0) {
+	var stack = _n0.O;
+	return stack;
 };
 var author$project$Code$If = F2(
 	function (a, b) {
@@ -6431,10 +6435,7 @@ var author$project$Code$parse = function (source) {
 	return {
 		bl: A2(elm$parser$Parser$run, author$project$Code$parser, source),
 		ce: source,
-		O: _List_fromArray(
-			[
-				author$project$Code$SubCall('main')
-			])
+		O: _List_Nil
 	};
 };
 var author$project$Code$pop = function (_n0) {
@@ -7150,6 +7151,13 @@ var author$project$Model$initWorld = A4(
 			author$project$World$init,
 			author$project$Positive$fromInt(32),
 			author$project$Positive$fromInt(16))));
+var elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
 var elm$time$Time$Name = function (a) {
 	return {$: 0, a: a};
 };
@@ -7175,7 +7183,7 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							B: A2(author$project$Code$prepend, instruction, model.B)
+							q: A2(author$project$Code$prepend, instruction, model.q)
 						}),
 					elm$core$Platform$Cmd$none);
 			case 1:
@@ -7184,14 +7192,20 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							B: A2(author$project$Code$append, instruction, model.B)
+							q: A2(author$project$Code$append, instruction, model.q)
 						}),
 					elm$core$Platform$Cmd$none);
 			case 2:
+				var newRunning = !model.X;
+				var newCode = elm$core$List$isEmpty(
+					author$project$Code$getStack(model.q)) ? A2(
+					author$project$Code$prepend,
+					author$project$Code$SubCall('main'),
+					model.q) : model.q;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{X: !model.X}),
+						{q: newCode, X: newRunning}),
 					elm$core$Platform$Cmd$none);
 			case 3:
 				if (!msg.a.$) {
@@ -7211,7 +7225,7 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							B: author$project$Code$parse(string)
+							q: author$project$Code$parse(string)
 						}),
 					elm$core$Platform$Cmd$none);
 			case 7:
@@ -7234,11 +7248,11 @@ var author$project$Main$update = F2(
 					A2(
 						elm$core$Result$map,
 						function (_n2) {
-							var _n3 = author$project$Code$pop(model.B);
+							var _n3 = author$project$Code$pop(model.q);
 							if (!_n3.a.$) {
 								var instruction = _n3.a.a;
 								var newInstructions = _n3.b;
-								var _n4 = A3(author$project$Main$executeInstruction, instruction, model.B, model.az);
+								var _n4 = A3(author$project$Main$executeInstruction, instruction, model.q, model.az);
 								var newWorld = _n4.a;
 								var cmd = _n4.b;
 								var newRunning = A2(
@@ -7252,7 +7266,7 @@ var author$project$Main$update = F2(
 									_Utils_update(
 										model,
 										{
-											B: A2(author$project$Code$setStack, newInstructions, model.B),
+											q: A2(author$project$Code$setStack, newInstructions, model.q),
 											bV: currentTime,
 											X: newRunning,
 											az: newWorld
@@ -7284,7 +7298,7 @@ var author$project$Model$initCode = author$project$Code$parse('sub main() {\n  \
 var author$project$Model$init = function (_n0) {
 	return _Utils_Tuple2(
 		{
-			B: author$project$Model$initCode,
+			q: author$project$Model$initCode,
 			bQ: 750,
 			bV: elm$time$Time$millisToPosix(0),
 			X: false,
@@ -7298,6 +7312,35 @@ var author$project$Code$getSource = function (_n0) {
 };
 var author$project$Msg$ParseCode = function (a) {
 	return {$: 6, a: a};
+};
+var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var rtfeldman$elm_css$VirtualDom$Styled$Unstyled = function (a) {
+	return {$: 4, a: a};
+};
+var rtfeldman$elm_css$VirtualDom$Styled$text = function (str) {
+	return rtfeldman$elm_css$VirtualDom$Styled$Unstyled(
+		elm$virtual_dom$VirtualDom$text(str));
+};
+var rtfeldman$elm_css$Html$Styled$text = rtfeldman$elm_css$VirtualDom$Styled$text;
+var author$project$View$viewError = function (error) {
+	return rtfeldman$elm_css$Html$Styled$text(
+		function () {
+			switch (error.$) {
+				case 0:
+					return 'The given world size is not valid';
+				case 1:
+					return 'There is no hamster in the world';
+				case 2:
+					return 'The hamster collided with a wall';
+				case 3:
+					return 'The hamster has fallen out of the world';
+				case 4:
+					return 'Your code run for too long';
+				default:
+					var instruction = error.a;
+					return 'The sub \"' + (instruction + '\" was never defined');
+			}
+		}());
 };
 var author$project$Msg$SetTile = F3(
 	function (a, b, c) {
@@ -7338,7 +7381,7 @@ var rtfeldman$elm_css$Css$angleConverter = F2(
 	function (suffix, angleVal) {
 		return {
 			cq: 0,
-			A: 0,
+			B: 0,
 			cY: _Utils_ap(
 				elm$core$String$fromFloat(angleVal),
 				suffix)
@@ -7766,7 +7809,7 @@ var rtfeldman$elm_css$Css$Internal$lengthConverter = F3(
 			bp: 0,
 			by: 0,
 			ag: 0,
-			q: 0,
+			r: 0,
 			aG: 0,
 			al: 0,
 			K: 0,
@@ -7827,14 +7870,7 @@ var rtfeldman$elm_css$Css$stop2 = F2(
 			c,
 			elm$core$Maybe$Just(len));
 	});
-var rtfeldman$elm_css$Css$toRight = {A: 0, cY: 'to right'};
-var elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
+var rtfeldman$elm_css$Css$toRight = {B: 0, cY: 'to right'};
 var rtfeldman$elm_css$Css$valuesOrNone = function (list) {
 	return elm$core$List$isEmpty(list) ? {cY: 'none'} : {
 		cY: A2(
@@ -9731,10 +9767,632 @@ var author$project$View$viewTile = F3(
 				]),
 			_List_Nil);
 	});
-var elm$virtual_dom$VirtualDom$lazy4 = _VirtualDom_lazy4;
-var rtfeldman$elm_css$VirtualDom$Styled$Unstyled = function (a) {
-	return {$: 4, a: a};
+var rtfeldman$elm_css$Css$maxWidth = rtfeldman$elm_css$Css$prop1('max-width');
+var rtfeldman$elm_css$VirtualDom$Styled$KeyedNode = F3(
+	function (a, b, c) {
+		return {$: 2, a: a, b: b, c: c};
+	});
+var rtfeldman$elm_css$VirtualDom$Styled$keyedNode = rtfeldman$elm_css$VirtualDom$Styled$KeyedNode;
+var rtfeldman$elm_css$Html$Styled$Keyed$node = rtfeldman$elm_css$VirtualDom$Styled$keyedNode;
+var author$project$View$viewWorld = function (maybeWorld) {
+	if (!maybeWorld.$) {
+		var world = maybeWorld.a;
+		return A3(
+			rtfeldman$elm_css$Html$Styled$Keyed$node,
+			'div',
+			_List_fromArray(
+				[
+					rtfeldman$elm_css$Html$Styled$Attributes$css(
+					_List_fromArray(
+						[
+							A2(rtfeldman$elm_css$Css$property, 'display', 'grid'),
+							A2(
+							rtfeldman$elm_css$Css$property,
+							'grid-template-columns',
+							'repeat(' + (elm$core$String$fromInt(
+								author$project$World$width(maybeWorld)) + ', 1fr)')),
+							A2(
+							rtfeldman$elm_css$Css$property,
+							'grid-template-rows',
+							'repeat(' + (elm$core$String$fromInt(
+								author$project$World$height(maybeWorld)) + ', 1fr)')),
+							rtfeldman$elm_css$Css$maxWidth(
+							rtfeldman$elm_css$Css$px(
+								author$project$World$width(maybeWorld) * 32))
+						]))
+				]),
+			A3(
+				elm$core$List$foldr,
+				elm$core$Basics$append,
+				_List_Nil,
+				elm$core$Array$toList(
+					A2(
+						elm$core$Array$indexedMap,
+						F2(
+							function (y, row) {
+								return elm$core$Array$toList(
+									A2(
+										elm$core$Array$indexedMap,
+										F2(
+											function (x, tile) {
+												var key = elm$core$String$fromInt(x) + (',' + elm$core$String$fromInt(y));
+												var html = A3(author$project$View$viewTile, x, y, tile);
+												return _Utils_Tuple2(key, html);
+											}),
+										row));
+							}),
+						world.cT))));
+	} else {
+		var err = maybeWorld.a;
+		return author$project$View$viewError(err);
+	}
 };
+var author$project$Code$getSubs = function (_n0) {
+	var program = _n0.bl;
+	return program;
+};
+var author$project$Msg$Next = {$: 4};
+var author$project$Msg$Reset = {$: 7};
+var author$project$Msg$SetInterval = function (a) {
+	return {$: 3, a: a};
+};
+var author$project$Msg$Toggle = {$: 2};
+var rtfeldman$elm_css$Css$stringsToValue = function (list) {
+	return elm$core$List$isEmpty(list) ? {cY: 'none'} : {
+		cY: A2(
+			elm$core$String$join,
+			', ',
+			A2(
+				elm$core$List$map,
+				function (s) {
+					return s;
+				},
+				list))
+	};
+};
+var rtfeldman$elm_css$Css$fontFamilies = A2(
+	elm$core$Basics$composeL,
+	rtfeldman$elm_css$Css$prop1('font-family'),
+	rtfeldman$elm_css$Css$stringsToValue);
+var rtfeldman$elm_css$Css$monospace = {R: 0, cY: 'monospace'};
+var author$project$Style$monospaced = rtfeldman$elm_css$Css$fontFamilies(
+	_List_fromArray(
+		[
+			'Consolas',
+			'Andale Mono WT',
+			'Andale Mono',
+			'Lucida Console',
+			'Lucida Sans Typewriter',
+			'DejaVu Sans Mono',
+			'Bitstream Vera Sans Mono',
+			'Liberation Mono',
+			'Nimbus Mono L',
+			'Monaco',
+			'Courier New',
+			'Courier',
+			function ($) {
+			return $.cY;
+		}(rtfeldman$elm_css$Css$monospace)
+		]));
+var rtfeldman$elm_css$Html$Styled$strong = rtfeldman$elm_css$Html$Styled$node('strong');
+var author$project$View$Sidebar$viewFunction = function (fun) {
+	switch (fun.$) {
+		case 0:
+			return A2(
+				rtfeldman$elm_css$Html$Styled$strong,
+				_List_Nil,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text(' true ')
+					]));
+		case 1:
+			return A2(
+				rtfeldman$elm_css$Html$Styled$strong,
+				_List_Nil,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text(' false ')
+					]));
+		case 2:
+			var nestedFun = fun.a;
+			return A2(
+				rtfeldman$elm_css$Html$Styled$strong,
+				_List_Nil,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text(' not '),
+						author$project$View$Sidebar$viewFunction(nestedFun)
+					]));
+		default:
+			return A2(
+				rtfeldman$elm_css$Html$Styled$strong,
+				_List_Nil,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text(' free() ')
+					]));
+	}
+};
+var rtfeldman$elm_css$Html$Styled$li = rtfeldman$elm_css$Html$Styled$node('li');
+var rtfeldman$elm_css$Html$Styled$ul = rtfeldman$elm_css$Html$Styled$node('ul');
+var author$project$View$Sidebar$viewInstruction = function (instruction) {
+	switch (instruction.$) {
+		case 0:
+			var name = instruction.a;
+			return _List_fromArray(
+				[
+					A2(
+					rtfeldman$elm_css$Html$Styled$strong,
+					_List_Nil,
+					_List_fromArray(
+						[
+							rtfeldman$elm_css$Html$Styled$text(name + '();')
+						]))
+				]);
+		case 1:
+			var fun = instruction.a;
+			var instructions = instruction.b;
+			return _List_fromArray(
+				[
+					rtfeldman$elm_css$Html$Styled$text('if '),
+					author$project$View$Sidebar$viewFunction(fun),
+					author$project$View$Sidebar$viewInstructions(instructions)
+				]);
+		default:
+			var fun = instruction.a;
+			var instructions = instruction.b;
+			return _List_fromArray(
+				[
+					rtfeldman$elm_css$Html$Styled$text('while '),
+					author$project$View$Sidebar$viewFunction(fun),
+					author$project$View$Sidebar$viewInstructions(instructions)
+				]);
+	}
+};
+var author$project$View$Sidebar$viewInstructions = function (instructions) {
+	return A2(
+		rtfeldman$elm_css$Html$Styled$ul,
+		_List_fromArray(
+			[
+				rtfeldman$elm_css$Html$Styled$Attributes$css(
+				_List_fromArray(
+					[author$project$Style$monospaced]))
+			]),
+		A2(
+			elm$core$List$map,
+			function (instruction) {
+				return A2(
+					rtfeldman$elm_css$Html$Styled$li,
+					_List_Nil,
+					author$project$View$Sidebar$viewInstruction(instruction));
+			},
+			instructions));
+};
+var author$project$View$Sidebar$viewSub = function (_n0) {
+	var name = _n0.a;
+	var instructions = _n0.b;
+	return A2(
+		rtfeldman$elm_css$Html$Styled$li,
+		_List_Nil,
+		_List_fromArray(
+			[
+				rtfeldman$elm_css$Html$Styled$text('sub '),
+				A2(
+				rtfeldman$elm_css$Html$Styled$strong,
+				_List_Nil,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text(name)
+					])),
+				rtfeldman$elm_css$Html$Styled$text('()'),
+				author$project$View$Sidebar$viewInstructions(instructions)
+			]));
+};
+var elm$parser$Parser$deadEndsToString = function (deadEnds) {
+	return 'TODO deadEndsToString';
+};
+var rtfeldman$elm_css$Html$Styled$button = rtfeldman$elm_css$Html$Styled$node('button');
+var rtfeldman$elm_css$Html$Styled$div = rtfeldman$elm_css$Html$Styled$node('div');
+var rtfeldman$elm_css$Html$Styled$h2 = rtfeldman$elm_css$Html$Styled$node('h2');
+var rtfeldman$elm_css$Html$Styled$input = rtfeldman$elm_css$Html$Styled$node('input');
+var rtfeldman$elm_css$Html$Styled$Attributes$max = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('max');
+var rtfeldman$elm_css$Html$Styled$Attributes$min = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('min');
+var rtfeldman$elm_css$Html$Styled$Attributes$step = function (n) {
+	return A2(rtfeldman$elm_css$Html$Styled$Attributes$stringProperty, 'step', n);
+};
+var rtfeldman$elm_css$Html$Styled$Attributes$type_ = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('type');
+var rtfeldman$elm_css$Html$Styled$Attributes$value = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('value');
+var rtfeldman$elm_css$Html$Styled$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 1, a: a};
+};
+var rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			rtfeldman$elm_css$VirtualDom$Styled$on,
+			event,
+			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
+	});
+var elm$json$Json$Decode$string = _Json_decodeString;
+var rtfeldman$elm_css$Html$Styled$Events$targetValue = A2(
+	elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	elm$json$Json$Decode$string);
+var rtfeldman$elm_css$Html$Styled$Events$onInput = function (tagger) {
+	return A2(
+		rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn,
+		'input',
+		A2(
+			elm$json$Json$Decode$map,
+			rtfeldman$elm_css$Html$Styled$Events$alwaysStop,
+			A2(elm$json$Json$Decode$map, tagger, rtfeldman$elm_css$Html$Styled$Events$targetValue)));
+};
+var author$project$View$Sidebar$viewControls = function (model) {
+	return A2(
+		rtfeldman$elm_css$Html$Styled$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(
+						author$project$Msg$ParseCode('sub main() {\n  go();\n}'))
+					]),
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Go')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(
+						author$project$Msg$ParseCode('sub main() {\n  turnLeft();\n}'))
+					]),
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Turn Left')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(
+						author$project$Msg$ParseCode('sub main() {\n  if (free()) {\n    go();\n  }\n}'))
+					]),
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Go if Free')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(
+						author$project$Msg$ParseCode('sub main() {\n  while (free()) {\n    go();\n  }\n}'))
+					]),
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Go while Free')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(
+						author$project$Msg$ParseCode('sub main() {\n  while (free()) {\n    while (free()) {\n      go();\n    }\n    turnLeft();\n  }\n}'))
+					]),
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Run forever in circle')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(author$project$Msg$Next)
+					]),
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Next')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(author$project$Msg$Toggle)
+					]),
+				_List_fromArray(
+					[
+						model.X ? rtfeldman$elm_css$Html$Styled$text('Stop') : rtfeldman$elm_css$Html$Styled$text('Start')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$button,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Events$onClick(author$project$Msg$Reset)
+					]),
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Reset')
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$input,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Attributes$type_('range'),
+						rtfeldman$elm_css$Html$Styled$Events$onInput(
+						A2(elm$core$Basics$composeL, author$project$Msg$SetInterval, elm$core$String$toInt)),
+						rtfeldman$elm_css$Html$Styled$Attributes$min('0'),
+						rtfeldman$elm_css$Html$Styled$Attributes$max('1000'),
+						rtfeldman$elm_css$Html$Styled$Attributes$step('250'),
+						rtfeldman$elm_css$Html$Styled$Attributes$value(
+						elm$core$String$fromInt(model.bQ))
+					]),
+				_List_Nil),
+				A2(
+				rtfeldman$elm_css$Html$Styled$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Parser Result')
+					])),
+				function () {
+				var _n0 = author$project$Code$getSubs(model.q);
+				if (!_n0.$) {
+					var subs = _n0.a;
+					return A2(
+						rtfeldman$elm_css$Html$Styled$ul,
+						_List_Nil,
+						A2(
+							elm$core$List$map,
+							author$project$View$Sidebar$viewSub,
+							elm$core$Dict$toList(subs)));
+				} else {
+					var err = _n0.a;
+					return rtfeldman$elm_css$Html$Styled$text(
+						elm$parser$Parser$deadEndsToString(err));
+				}
+			}(),
+				A2(
+				rtfeldman$elm_css$Html$Styled$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$text('Stack')
+					])),
+				author$project$View$Sidebar$viewInstructions(
+				author$project$Code$getStack(model.q))
+			]));
+};
+var rtfeldman$elm_css$Css$UnitlessFloat = 0;
+var rtfeldman$elm_css$Css$num = function (val) {
+	return {
+		U: 0,
+		D: 0,
+		aI: 0,
+		N: val,
+		aw: '',
+		aS: 0,
+		cY: elm$core$String$fromFloat(val)
+	};
+};
+var rtfeldman$elm_css$Css$order = rtfeldman$elm_css$Css$prop1('order');
+var author$project$View$Sidebar$view = function (model) {
+	return A2(
+		rtfeldman$elm_css$Html$Styled$div,
+		_List_fromArray(
+			[
+				rtfeldman$elm_css$Html$Styled$Attributes$css(
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Css$order(
+						rtfeldman$elm_css$Css$num(2)),
+						A2(rtfeldman$elm_css$Css$property, 'grid-row', 'span 2')
+					]))
+			]),
+		_List_fromArray(
+			[
+				author$project$View$Sidebar$viewControls(model)
+			]));
+};
+var rtfeldman$elm_css$Css$Internal$property = F2(
+	function (key, value) {
+		return rtfeldman$elm_css$Css$Preprocess$AppendProperty(key + (':' + value));
+	});
+var rtfeldman$elm_css$Css$Internal$getOverloadedProperty = F3(
+	function (functionName, desiredKey, style) {
+		getOverloadedProperty:
+		while (true) {
+			switch (style.$) {
+				case 0:
+					var str = style.a;
+					var key = A2(
+						elm$core$Maybe$withDefault,
+						'',
+						elm$core$List$head(
+							A2(elm$core$String$split, ':', str)));
+					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, key);
+				case 1:
+					var selector = style.a;
+					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-selector'));
+				case 2:
+					var combinator = style.a;
+					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-combinator'));
+				case 3:
+					var pseudoElement = style.a;
+					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-pseudo-element setter'));
+				case 4:
+					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-media-query'));
+				case 5:
+					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-keyframes'));
+				default:
+					if (!style.a.b) {
+						return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-empty-Style'));
+					} else {
+						if (!style.a.b.b) {
+							var _n1 = style.a;
+							var only = _n1.a;
+							var $temp$functionName = functionName,
+								$temp$desiredKey = desiredKey,
+								$temp$style = only;
+							functionName = $temp$functionName;
+							desiredKey = $temp$desiredKey;
+							style = $temp$style;
+							continue getOverloadedProperty;
+						} else {
+							var _n2 = style.a;
+							var first = _n2.a;
+							var rest = _n2.b;
+							var $temp$functionName = functionName,
+								$temp$desiredKey = desiredKey,
+								$temp$style = rtfeldman$elm_css$Css$Preprocess$ApplyStyles(rest);
+							functionName = $temp$functionName;
+							desiredKey = $temp$desiredKey;
+							style = $temp$style;
+							continue getOverloadedProperty;
+						}
+					}
+			}
+		}
+	});
+var rtfeldman$elm_css$Css$Internal$IncompatibleUnits = 0;
+var rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty = A3(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, '', 0);
+var rtfeldman$elm_css$Css$alignItems = function (fn) {
+	return A3(
+		rtfeldman$elm_css$Css$Internal$getOverloadedProperty,
+		'alignItems',
+		'align-items',
+		fn(rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty));
+};
+var rtfeldman$elm_css$Css$center = rtfeldman$elm_css$Css$prop1('center');
+var rtfeldman$elm_css$Css$displayFlex = A2(rtfeldman$elm_css$Css$property, 'display', 'flex');
+var rtfeldman$elm_css$Css$justifyContent = function (fn) {
+	return A3(
+		rtfeldman$elm_css$Css$Internal$getOverloadedProperty,
+		'justifyContent',
+		'justify-content',
+		fn(rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty));
+};
+var rtfeldman$elm_css$Css$sansSerif = {R: 0, cY: 'sans-serif'};
+var rtfeldman$elm_css$Css$VhUnits = 0;
+var rtfeldman$elm_css$Css$vh = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, 'vh');
+var rtfeldman$elm_css$Html$Styled$textarea = rtfeldman$elm_css$Html$Styled$node('textarea');
+var author$project$View$mainView = function (model) {
+	return A2(
+		rtfeldman$elm_css$Html$Styled$div,
+		_List_fromArray(
+			[
+				rtfeldman$elm_css$Html$Styled$Attributes$css(
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Css$height(
+						rtfeldman$elm_css$Css$vh(100)),
+						A2(rtfeldman$elm_css$Css$property, 'display', 'grid'),
+						A2(rtfeldman$elm_css$Css$property, 'grid-template-columns', 'auto 400px'),
+						A2(rtfeldman$elm_css$Css$property, 'grid-template-rows', '1fr 1fr'),
+						rtfeldman$elm_css$Css$fontFamilies(
+						_List_fromArray(
+							[
+								'-apple-system',
+								'BlinkMacSystemFont',
+								'Segoe UI',
+								'Roboto',
+								'Helvetica',
+								'Arial',
+								function ($) {
+								return $.cY;
+							}(rtfeldman$elm_css$Css$sansSerif)
+							]))
+					]))
+			]),
+		_List_fromArray(
+			[
+				A2(
+				rtfeldman$elm_css$Html$Styled$div,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Attributes$css(
+						_List_fromArray(
+							[
+								rtfeldman$elm_css$Css$displayFlex,
+								rtfeldman$elm_css$Css$justifyContent(rtfeldman$elm_css$Css$center),
+								rtfeldman$elm_css$Css$alignItems(rtfeldman$elm_css$Css$center),
+								rtfeldman$elm_css$Css$order(
+								rtfeldman$elm_css$Css$num(1))
+							]))
+					]),
+				_List_fromArray(
+					[
+						author$project$View$viewWorld(model.az)
+					])),
+				A2(
+				rtfeldman$elm_css$Html$Styled$div,
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Attributes$css(
+						_List_fromArray(
+							[
+								rtfeldman$elm_css$Css$order(
+								rtfeldman$elm_css$Css$num(3))
+							]))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						rtfeldman$elm_css$Html$Styled$textarea,
+						_List_fromArray(
+							[
+								rtfeldman$elm_css$Html$Styled$Attributes$css(
+								_List_fromArray(
+									[
+										rtfeldman$elm_css$Css$width(
+										rtfeldman$elm_css$Css$pct(100)),
+										rtfeldman$elm_css$Css$height(
+										rtfeldman$elm_css$Css$pct(100)),
+										rtfeldman$elm_css$Css$fontFamilies(
+										_List_fromArray(
+											[
+												'Consolas',
+												'Andale Mono WT',
+												'Andale Mono',
+												'Lucida Console',
+												'Lucida Sans Typewriter',
+												'DejaVu Sans Mono',
+												'Bitstream Vera Sans Mono',
+												'Liberation Mono',
+												'Nimbus Mono L',
+												'Monaco',
+												'Courier New',
+												'Courier',
+												function ($) {
+												return $.cY;
+											}(rtfeldman$elm_css$Css$monospace)
+											]))
+									])),
+								rtfeldman$elm_css$Html$Styled$Events$onInput(author$project$Msg$ParseCode),
+								rtfeldman$elm_css$Html$Styled$Attributes$value(
+								author$project$Code$getSource(model.q))
+							]),
+						_List_Nil)
+					])),
+				author$project$View$Sidebar$view(model)
+			]));
+};
+var elm$browser$Browser$Document = F2(
+	function (title, body) {
+		return {cs: body, cU: title};
+	});
 var elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
 		_VirtualDom_noScript(tag));
@@ -10016,7 +10674,6 @@ var rtfeldman$elm_css$VirtualDom$Styled$stylesFromProperties = function (propert
 		return A2(elm$core$Dict$singleton, classname, styles);
 	}
 };
-var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var rtfeldman$elm_css$Css$Structure$ClassSelector = function (a) {
 	return {$: 0, a: a};
 };
@@ -10216,666 +10873,6 @@ var rtfeldman$elm_css$VirtualDom$Styled$toUnstyled = function (vdom) {
 			return A4(rtfeldman$elm_css$VirtualDom$Styled$unstyleKeyedNS, ns, elemType, properties, children);
 	}
 };
-var rtfeldman$elm_css$VirtualDom$Styled$lazyHelp3 = F4(
-	function (fn, arg1, arg2, arg3) {
-		return rtfeldman$elm_css$VirtualDom$Styled$toUnstyled(
-			A3(fn, arg1, arg2, arg3));
-	});
-var rtfeldman$elm_css$VirtualDom$Styled$lazy3 = F4(
-	function (fn, arg1, arg2, arg3) {
-		return rtfeldman$elm_css$VirtualDom$Styled$Unstyled(
-			A5(elm$virtual_dom$VirtualDom$lazy4, rtfeldman$elm_css$VirtualDom$Styled$lazyHelp3, fn, arg1, arg2, arg3));
-	});
-var rtfeldman$elm_css$Html$Styled$Lazy$lazy3 = rtfeldman$elm_css$VirtualDom$Styled$lazy3;
-var author$project$View$lazyViewTile = F3(
-	function (x, y, tile) {
-		return A4(rtfeldman$elm_css$Html$Styled$Lazy$lazy3, author$project$View$viewTile, x, y, tile);
-	});
-var rtfeldman$elm_css$VirtualDom$Styled$text = function (str) {
-	return rtfeldman$elm_css$VirtualDom$Styled$Unstyled(
-		elm$virtual_dom$VirtualDom$text(str));
-};
-var rtfeldman$elm_css$Html$Styled$text = rtfeldman$elm_css$VirtualDom$Styled$text;
-var author$project$View$viewError = function (error) {
-	return rtfeldman$elm_css$Html$Styled$text(
-		function () {
-			switch (error.$) {
-				case 0:
-					return 'The given world size is not valid';
-				case 1:
-					return 'There is no hamster in the world';
-				case 2:
-					return 'The hamster collided with a wall';
-				case 3:
-					return 'The hamster has fallen out of the world';
-				case 4:
-					return 'Your code run for too long';
-				default:
-					var instruction = error.a;
-					return 'The sub \"' + (instruction + '\" was never defined');
-			}
-		}());
-};
-var rtfeldman$elm_css$Css$maxWidth = rtfeldman$elm_css$Css$prop1('max-width');
-var rtfeldman$elm_css$Html$Styled$div = rtfeldman$elm_css$Html$Styled$node('div');
-var author$project$View$viewWorld = function (maybeWorld) {
-	if (!maybeWorld.$) {
-		var world = maybeWorld.a;
-		return A2(
-			rtfeldman$elm_css$Html$Styled$div,
-			_List_fromArray(
-				[
-					rtfeldman$elm_css$Html$Styled$Attributes$css(
-					_List_fromArray(
-						[
-							A2(rtfeldman$elm_css$Css$property, 'display', 'grid'),
-							A2(
-							rtfeldman$elm_css$Css$property,
-							'grid-template-columns',
-							'repeat(' + (elm$core$String$fromInt(
-								author$project$World$width(maybeWorld)) + ', 1fr)')),
-							A2(
-							rtfeldman$elm_css$Css$property,
-							'grid-template-rows',
-							'repeat(' + (elm$core$String$fromInt(
-								author$project$World$height(maybeWorld)) + ', 1fr)')),
-							rtfeldman$elm_css$Css$maxWidth(
-							rtfeldman$elm_css$Css$px(
-								author$project$World$width(maybeWorld) * 32))
-						]))
-				]),
-			A3(
-				elm$core$List$foldr,
-				elm$core$Basics$append,
-				_List_Nil,
-				elm$core$Array$toList(
-					A2(
-						elm$core$Array$indexedMap,
-						F2(
-							function (y, row) {
-								return elm$core$Array$toList(
-									A2(
-										elm$core$Array$indexedMap,
-										function (x) {
-											return A2(author$project$View$lazyViewTile, x, y);
-										},
-										row));
-							}),
-						world.cT))));
-	} else {
-		var err = maybeWorld.a;
-		return author$project$View$viewError(err);
-	}
-};
-var author$project$Code$getStack = function (_n0) {
-	var stack = _n0.O;
-	return stack;
-};
-var author$project$Code$getSubs = function (_n0) {
-	var program = _n0.bl;
-	return program;
-};
-var author$project$Msg$Next = {$: 4};
-var author$project$Msg$Reset = {$: 7};
-var author$project$Msg$SetInterval = function (a) {
-	return {$: 3, a: a};
-};
-var author$project$Msg$Toggle = {$: 2};
-var rtfeldman$elm_css$Css$stringsToValue = function (list) {
-	return elm$core$List$isEmpty(list) ? {cY: 'none'} : {
-		cY: A2(
-			elm$core$String$join,
-			', ',
-			A2(
-				elm$core$List$map,
-				function (s) {
-					return s;
-				},
-				list))
-	};
-};
-var rtfeldman$elm_css$Css$fontFamilies = A2(
-	elm$core$Basics$composeL,
-	rtfeldman$elm_css$Css$prop1('font-family'),
-	rtfeldman$elm_css$Css$stringsToValue);
-var rtfeldman$elm_css$Css$monospace = {R: 0, cY: 'monospace'};
-var author$project$Style$monospaced = rtfeldman$elm_css$Css$fontFamilies(
-	_List_fromArray(
-		[
-			'Consolas',
-			'Andale Mono WT',
-			'Andale Mono',
-			'Lucida Console',
-			'Lucida Sans Typewriter',
-			'DejaVu Sans Mono',
-			'Bitstream Vera Sans Mono',
-			'Liberation Mono',
-			'Nimbus Mono L',
-			'Monaco',
-			'Courier New',
-			'Courier',
-			function ($) {
-			return $.cY;
-		}(rtfeldman$elm_css$Css$monospace)
-		]));
-var rtfeldman$elm_css$Html$Styled$strong = rtfeldman$elm_css$Html$Styled$node('strong');
-var author$project$View$Sidebar$viewFunction = function (fun) {
-	switch (fun.$) {
-		case 0:
-			return A2(
-				rtfeldman$elm_css$Html$Styled$strong,
-				_List_Nil,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text(' true ')
-					]));
-		case 1:
-			return A2(
-				rtfeldman$elm_css$Html$Styled$strong,
-				_List_Nil,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text(' false ')
-					]));
-		case 2:
-			var nestedFun = fun.a;
-			return A2(
-				rtfeldman$elm_css$Html$Styled$strong,
-				_List_Nil,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text(' not '),
-						author$project$View$Sidebar$viewFunction(nestedFun)
-					]));
-		default:
-			return A2(
-				rtfeldman$elm_css$Html$Styled$strong,
-				_List_Nil,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text(' free() ')
-					]));
-	}
-};
-var rtfeldman$elm_css$Html$Styled$li = rtfeldman$elm_css$Html$Styled$node('li');
-var rtfeldman$elm_css$Html$Styled$ul = rtfeldman$elm_css$Html$Styled$node('ul');
-var author$project$View$Sidebar$viewInstruction = function (instruction) {
-	switch (instruction.$) {
-		case 0:
-			var name = instruction.a;
-			return _List_fromArray(
-				[
-					A2(
-					rtfeldman$elm_css$Html$Styled$strong,
-					_List_Nil,
-					_List_fromArray(
-						[
-							rtfeldman$elm_css$Html$Styled$text(name + '();')
-						]))
-				]);
-		case 1:
-			var fun = instruction.a;
-			var instructions = instruction.b;
-			return _List_fromArray(
-				[
-					rtfeldman$elm_css$Html$Styled$text('if '),
-					author$project$View$Sidebar$viewFunction(fun),
-					author$project$View$Sidebar$viewInstructions(instructions)
-				]);
-		default:
-			var fun = instruction.a;
-			var instructions = instruction.b;
-			return _List_fromArray(
-				[
-					rtfeldman$elm_css$Html$Styled$text('while '),
-					author$project$View$Sidebar$viewFunction(fun),
-					author$project$View$Sidebar$viewInstructions(instructions)
-				]);
-	}
-};
-var author$project$View$Sidebar$viewInstructions = function (instructions) {
-	return A2(
-		rtfeldman$elm_css$Html$Styled$ul,
-		_List_fromArray(
-			[
-				rtfeldman$elm_css$Html$Styled$Attributes$css(
-				_List_fromArray(
-					[author$project$Style$monospaced]))
-			]),
-		A2(
-			elm$core$List$map,
-			function (instruction) {
-				return A2(
-					rtfeldman$elm_css$Html$Styled$li,
-					_List_Nil,
-					author$project$View$Sidebar$viewInstruction(instruction));
-			},
-			instructions));
-};
-var author$project$View$Sidebar$viewSub = function (_n0) {
-	var name = _n0.a;
-	var instructions = _n0.b;
-	return A2(
-		rtfeldman$elm_css$Html$Styled$li,
-		_List_Nil,
-		_List_fromArray(
-			[
-				rtfeldman$elm_css$Html$Styled$text('sub '),
-				A2(
-				rtfeldman$elm_css$Html$Styled$strong,
-				_List_Nil,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text(name)
-					])),
-				rtfeldman$elm_css$Html$Styled$text('()'),
-				author$project$View$Sidebar$viewInstructions(instructions)
-			]));
-};
-var elm$parser$Parser$deadEndsToString = function (deadEnds) {
-	return 'TODO deadEndsToString';
-};
-var rtfeldman$elm_css$Html$Styled$button = rtfeldman$elm_css$Html$Styled$node('button');
-var rtfeldman$elm_css$Html$Styled$h2 = rtfeldman$elm_css$Html$Styled$node('h2');
-var rtfeldman$elm_css$Html$Styled$input = rtfeldman$elm_css$Html$Styled$node('input');
-var rtfeldman$elm_css$Html$Styled$Attributes$max = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('max');
-var rtfeldman$elm_css$Html$Styled$Attributes$min = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('min');
-var rtfeldman$elm_css$Html$Styled$Attributes$step = function (n) {
-	return A2(rtfeldman$elm_css$Html$Styled$Attributes$stringProperty, 'step', n);
-};
-var rtfeldman$elm_css$Html$Styled$Attributes$type_ = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('type');
-var rtfeldman$elm_css$Html$Styled$Attributes$value = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('value');
-var rtfeldman$elm_css$Html$Styled$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
-};
-var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 1, a: a};
-};
-var rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			rtfeldman$elm_css$VirtualDom$Styled$on,
-			event,
-			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var elm$json$Json$Decode$field = _Json_decodeField;
-var elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
-	});
-var elm$json$Json$Decode$string = _Json_decodeString;
-var rtfeldman$elm_css$Html$Styled$Events$targetValue = A2(
-	elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'value']),
-	elm$json$Json$Decode$string);
-var rtfeldman$elm_css$Html$Styled$Events$onInput = function (tagger) {
-	return A2(
-		rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn,
-		'input',
-		A2(
-			elm$json$Json$Decode$map,
-			rtfeldman$elm_css$Html$Styled$Events$alwaysStop,
-			A2(elm$json$Json$Decode$map, tagger, rtfeldman$elm_css$Html$Styled$Events$targetValue)));
-};
-var author$project$View$Sidebar$viewControls = function (model) {
-	return A2(
-		rtfeldman$elm_css$Html$Styled$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(
-						author$project$Msg$ParseCode('sub main() {\n  go();\n}'))
-					]),
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Go')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(
-						author$project$Msg$ParseCode('sub main() {\n  turnLeft();\n}'))
-					]),
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Turn Left')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(
-						author$project$Msg$ParseCode('sub main() {\n  if (free()) {\n    go();\n  }\n}'))
-					]),
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Go if Free')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(
-						author$project$Msg$ParseCode('sub main() {\n  while (free()) {\n    go();\n  }\n}'))
-					]),
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Go while Free')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(
-						author$project$Msg$ParseCode('sub main() {\n  while (free()) {\n    while (free()) {\n      go();\n    }\n    turnLeft();\n  }\n}'))
-					]),
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Run forever in circle')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(author$project$Msg$Next)
-					]),
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Next')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(author$project$Msg$Toggle)
-					]),
-				_List_fromArray(
-					[
-						model.X ? rtfeldman$elm_css$Html$Styled$text('Stop') : rtfeldman$elm_css$Html$Styled$text('Start')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$button,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Events$onClick(author$project$Msg$Reset)
-					]),
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Reset')
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$input,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Attributes$type_('range'),
-						rtfeldman$elm_css$Html$Styled$Events$onInput(
-						A2(elm$core$Basics$composeL, author$project$Msg$SetInterval, elm$core$String$toInt)),
-						rtfeldman$elm_css$Html$Styled$Attributes$min('0'),
-						rtfeldman$elm_css$Html$Styled$Attributes$max('1000'),
-						rtfeldman$elm_css$Html$Styled$Attributes$step('250'),
-						rtfeldman$elm_css$Html$Styled$Attributes$value(
-						elm$core$String$fromInt(model.bQ))
-					]),
-				_List_Nil),
-				A2(
-				rtfeldman$elm_css$Html$Styled$h2,
-				_List_Nil,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Parser Result')
-					])),
-				function () {
-				var _n0 = author$project$Code$getSubs(model.B);
-				if (!_n0.$) {
-					var subs = _n0.a;
-					return A2(
-						rtfeldman$elm_css$Html$Styled$ul,
-						_List_Nil,
-						A2(
-							elm$core$List$map,
-							author$project$View$Sidebar$viewSub,
-							elm$core$Dict$toList(subs)));
-				} else {
-					var err = _n0.a;
-					return rtfeldman$elm_css$Html$Styled$text(
-						elm$parser$Parser$deadEndsToString(err));
-				}
-			}(),
-				A2(
-				rtfeldman$elm_css$Html$Styled$h2,
-				_List_Nil,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$text('Stack')
-					])),
-				author$project$View$Sidebar$viewInstructions(
-				author$project$Code$getStack(model.B))
-			]));
-};
-var rtfeldman$elm_css$Css$UnitlessFloat = 0;
-var rtfeldman$elm_css$Css$num = function (val) {
-	return {
-		U: 0,
-		D: 0,
-		aI: 0,
-		N: val,
-		aw: '',
-		aS: 0,
-		cY: elm$core$String$fromFloat(val)
-	};
-};
-var rtfeldman$elm_css$Css$order = rtfeldman$elm_css$Css$prop1('order');
-var author$project$View$Sidebar$view = function (model) {
-	return A2(
-		rtfeldman$elm_css$Html$Styled$div,
-		_List_fromArray(
-			[
-				rtfeldman$elm_css$Html$Styled$Attributes$css(
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Css$order(
-						rtfeldman$elm_css$Css$num(2)),
-						A2(rtfeldman$elm_css$Css$property, 'grid-row', 'span 2')
-					]))
-			]),
-		_List_fromArray(
-			[
-				author$project$View$Sidebar$viewControls(model)
-			]));
-};
-var rtfeldman$elm_css$Css$Internal$property = F2(
-	function (key, value) {
-		return rtfeldman$elm_css$Css$Preprocess$AppendProperty(key + (':' + value));
-	});
-var rtfeldman$elm_css$Css$Internal$getOverloadedProperty = F3(
-	function (functionName, desiredKey, style) {
-		getOverloadedProperty:
-		while (true) {
-			switch (style.$) {
-				case 0:
-					var str = style.a;
-					var key = A2(
-						elm$core$Maybe$withDefault,
-						'',
-						elm$core$List$head(
-							A2(elm$core$String$split, ':', str)));
-					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, key);
-				case 1:
-					var selector = style.a;
-					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-selector'));
-				case 2:
-					var combinator = style.a;
-					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-combinator'));
-				case 3:
-					var pseudoElement = style.a;
-					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-pseudo-element setter'));
-				case 4:
-					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-media-query'));
-				case 5:
-					return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-inapplicable-Style-for-keyframes'));
-				default:
-					if (!style.a.b) {
-						return A2(rtfeldman$elm_css$Css$Internal$property, desiredKey, 'elm-css-error-cannot-apply-' + (functionName + '-with-empty-Style'));
-					} else {
-						if (!style.a.b.b) {
-							var _n1 = style.a;
-							var only = _n1.a;
-							var $temp$functionName = functionName,
-								$temp$desiredKey = desiredKey,
-								$temp$style = only;
-							functionName = $temp$functionName;
-							desiredKey = $temp$desiredKey;
-							style = $temp$style;
-							continue getOverloadedProperty;
-						} else {
-							var _n2 = style.a;
-							var first = _n2.a;
-							var rest = _n2.b;
-							var $temp$functionName = functionName,
-								$temp$desiredKey = desiredKey,
-								$temp$style = rtfeldman$elm_css$Css$Preprocess$ApplyStyles(rest);
-							functionName = $temp$functionName;
-							desiredKey = $temp$desiredKey;
-							style = $temp$style;
-							continue getOverloadedProperty;
-						}
-					}
-			}
-		}
-	});
-var rtfeldman$elm_css$Css$Internal$IncompatibleUnits = 0;
-var rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty = A3(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, '', 0);
-var rtfeldman$elm_css$Css$alignItems = function (fn) {
-	return A3(
-		rtfeldman$elm_css$Css$Internal$getOverloadedProperty,
-		'alignItems',
-		'align-items',
-		fn(rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty));
-};
-var rtfeldman$elm_css$Css$center = rtfeldman$elm_css$Css$prop1('center');
-var rtfeldman$elm_css$Css$displayFlex = A2(rtfeldman$elm_css$Css$property, 'display', 'flex');
-var rtfeldman$elm_css$Css$justifyContent = function (fn) {
-	return A3(
-		rtfeldman$elm_css$Css$Internal$getOverloadedProperty,
-		'justifyContent',
-		'justify-content',
-		fn(rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty));
-};
-var rtfeldman$elm_css$Css$sansSerif = {R: 0, cY: 'sans-serif'};
-var rtfeldman$elm_css$Css$VhUnits = 0;
-var rtfeldman$elm_css$Css$vh = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, 'vh');
-var rtfeldman$elm_css$Html$Styled$textarea = rtfeldman$elm_css$Html$Styled$node('textarea');
-var author$project$View$mainView = function (model) {
-	return A2(
-		rtfeldman$elm_css$Html$Styled$div,
-		_List_fromArray(
-			[
-				rtfeldman$elm_css$Html$Styled$Attributes$css(
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Css$height(
-						rtfeldman$elm_css$Css$vh(100)),
-						A2(rtfeldman$elm_css$Css$property, 'display', 'grid'),
-						A2(rtfeldman$elm_css$Css$property, 'grid-template-columns', 'auto 400px'),
-						A2(rtfeldman$elm_css$Css$property, 'grid-template-rows', '1fr 1fr'),
-						rtfeldman$elm_css$Css$fontFamilies(
-						_List_fromArray(
-							[
-								'-apple-system',
-								'BlinkMacSystemFont',
-								'Segoe UI',
-								'Roboto',
-								'Helvetica',
-								'Arial',
-								function ($) {
-								return $.cY;
-							}(rtfeldman$elm_css$Css$sansSerif)
-							]))
-					]))
-			]),
-		_List_fromArray(
-			[
-				A2(
-				rtfeldman$elm_css$Html$Styled$div,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Attributes$css(
-						_List_fromArray(
-							[
-								rtfeldman$elm_css$Css$displayFlex,
-								rtfeldman$elm_css$Css$justifyContent(rtfeldman$elm_css$Css$center),
-								rtfeldman$elm_css$Css$alignItems(rtfeldman$elm_css$Css$center),
-								rtfeldman$elm_css$Css$order(
-								rtfeldman$elm_css$Css$num(1))
-							]))
-					]),
-				_List_fromArray(
-					[
-						author$project$View$viewWorld(model.az)
-					])),
-				A2(
-				rtfeldman$elm_css$Html$Styled$div,
-				_List_fromArray(
-					[
-						rtfeldman$elm_css$Html$Styled$Attributes$css(
-						_List_fromArray(
-							[
-								rtfeldman$elm_css$Css$order(
-								rtfeldman$elm_css$Css$num(3))
-							]))
-					]),
-				_List_fromArray(
-					[
-						A2(
-						rtfeldman$elm_css$Html$Styled$textarea,
-						_List_fromArray(
-							[
-								rtfeldman$elm_css$Html$Styled$Attributes$css(
-								_List_fromArray(
-									[
-										rtfeldman$elm_css$Css$width(
-										rtfeldman$elm_css$Css$pct(100)),
-										rtfeldman$elm_css$Css$height(
-										rtfeldman$elm_css$Css$pct(100)),
-										rtfeldman$elm_css$Css$fontFamilies(
-										_List_fromArray(
-											[
-												'Consolas',
-												'Andale Mono WT',
-												'Andale Mono',
-												'Lucida Console',
-												'Lucida Sans Typewriter',
-												'DejaVu Sans Mono',
-												'Bitstream Vera Sans Mono',
-												'Liberation Mono',
-												'Nimbus Mono L',
-												'Monaco',
-												'Courier New',
-												'Courier',
-												function ($) {
-												return $.cY;
-											}(rtfeldman$elm_css$Css$monospace)
-											]))
-									])),
-								rtfeldman$elm_css$Html$Styled$Events$onInput(author$project$Msg$ParseCode),
-								rtfeldman$elm_css$Html$Styled$Attributes$value(
-								author$project$Code$getSource(model.B))
-							]),
-						_List_Nil)
-					])),
-				author$project$View$Sidebar$view(model)
-			]));
-};
-var elm$browser$Browser$Document = F2(
-	function (title, body) {
-		return {cs: body, cU: title};
-	});
 var rtfeldman$elm_css$Html$Styled$toUnstyled = rtfeldman$elm_css$VirtualDom$Styled$toUnstyled;
 var author$project$View$view = function (model) {
 	return A2(
