@@ -17,6 +17,10 @@ view model =
         [ css
             [ order (num 2)
             , Css.property "grid-row" "span 2"
+            , backgroundColor (hex "fff")
+            , padding (px 16)
+            , border3 (px 2) solid (hex "000")
+            , marginLeft (px 32)
             ]
         ]
         [ viewControls model ]

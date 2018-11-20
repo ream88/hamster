@@ -29,22 +29,33 @@ mainView model =
             , Css.property "grid-template-columns" "auto 400px"
             , Css.property "grid-template-rows" "1fr 1fr"
             , fontFamilies [ "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", .value sansSerif ]
+            , padding (px 32)
+            , boxSizing borderBox
+            , backgroundImage (url "background.svg")
             ]
         ]
         [ div
             [ css
                 [ displayFlex
-                , justifyContent center
-                , alignItems center
+                , justifyContent flexStart
+                , alignItems flexStart
                 , order (num 1)
                 ]
             ]
             [ viewWorld model.world ]
-        , div [ css [ order (num 3) ] ]
+        , div
+            [ css
+                [ order (num 3)
+                , paddingTop (px 16)
+                ]
+            ]
             [ textarea
                 [ css
                     [ Css.width (pct 100)
                     , Css.height (pct 100)
+                    , border3 (px 2) solid (hex "000")
+                    , padding (px 16)
+                    , boxSizing borderBox
                     , fontFamilies [ "Consolas", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Monaco", "Courier New", "Courier", .value monospace ]
                     ]
                 , onInput ParseCode
@@ -95,18 +106,18 @@ viewWorld maybeWorld =
 viewTile : Int -> Int -> Tile -> Html Msg
 viewTile x y tile =
     let
-        border =
-            boxShadow4 (px 0) (px 0) (px 1) (rgba 0 0 0 0.25)
-
         backgroundImage_ =
             case tile of
                 Empty ->
-                    batch [ border ]
+                    batch
+                        [ backgroundColor (hex "fff")
+                        , backgroundImage (url "empty.svg")
+                        ]
 
                 Wall ->
                     batch
                         [ backgroundImage <| linearGradient2 toRight (stop2 (hex "7f4c3d") (pct 0)) (stop2 (hex "7f4c3d") (pct 50)) [ stop2 (hex "804c3e") (pct 75), stop2 (hex "7f4b3d") (pct 100) ]
-                        , backgroundImage (url "brick.png")
+                        , backgroundImage (url "wall.png")
                         ]
 
                 Hamster direction ->
@@ -133,7 +144,6 @@ viewTile x y tile =
                             |> deg
                             |> rotate
                             |> transform
-                        , border
                         ]
 
         changeTile =
