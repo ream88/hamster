@@ -6529,7 +6529,9 @@ var author$project$Main$checkExecutionsLimit = function (maybeWorld) {
 		},
 		maybeWorld);
 };
-var author$project$World$Collision = {$: 2};
+var author$project$World$Collision = function (a) {
+	return {$: 2, a: a};
+};
 var author$project$World$Empty = {$: 0};
 var author$project$World$Hamster = function (a) {
 	return {$: 2, a: a};
@@ -6832,7 +6834,8 @@ var author$project$World$moveHamster = function (maybeWorld) {
 		if (!_n4.$) {
 			if (_n4.a.$ === 1) {
 				var _n5 = _n4.a;
-				return elm$core$Result$Err(author$project$World$Collision);
+				return elm$core$Result$Err(
+					author$project$World$Collision(maybeWorld));
 			} else {
 				return A4(
 					author$project$World$set,
@@ -7347,6 +7350,23 @@ var author$project$Css$Extra$mediumSpace = author$project$Css$Extra$unit(2);
 var author$project$Css$Extra$smallSpace = author$project$Css$Extra$unit(1);
 var author$project$Msg$ParseCode = function (a) {
 	return {$: 6, a: a};
+};
+var author$project$View$errorToString = function (error) {
+	switch (error.$) {
+		case 0:
+			return 'The given world size is not valid';
+		case 1:
+			return 'There is no hamster in the world';
+		case 2:
+			return 'The hamster collided with a wall';
+		case 3:
+			return 'The hamster has fallen out of the world';
+		case 4:
+			return 'Your code run for too long';
+		default:
+			var instruction = error.a;
+			return 'The sub \"' + (instruction + '\" was never defined');
+	}
 };
 var author$project$Msg$SetTile = F3(
 	function (a, b, c) {
@@ -10209,91 +10229,450 @@ var author$project$View$lazyViewTile = F3(
 	function (x, y, tile) {
 		return A4(rtfeldman$elm_css$Html$Styled$Lazy$lazy3, author$project$View$viewTile, x, y, tile);
 	});
+var rtfeldman$elm_css$Css$prop3 = F4(
+	function (key, argA, argB, argC) {
+		return A2(
+			rtfeldman$elm_css$Css$property,
+			key,
+			A2(
+				elm$core$String$join,
+				' ',
+				_List_fromArray(
+					[argA.cY, argB.cY, argC.cY])));
+	});
+var rtfeldman$elm_css$Css$border3 = rtfeldman$elm_css$Css$prop3('border');
+var rtfeldman$elm_css$Css$color = function (c) {
+	return A2(rtfeldman$elm_css$Css$property, 'color', c.cY);
+};
+var rtfeldman$elm_css$Css$margin = rtfeldman$elm_css$Css$prop1('margin');
+var rtfeldman$elm_css$Css$marginBottom = rtfeldman$elm_css$Css$prop1('margin-bottom');
+var rtfeldman$elm_css$Css$maxWidth = rtfeldman$elm_css$Css$prop1('max-width');
+var rtfeldman$elm_css$Css$prop2 = F3(
+	function (key, argA, argB) {
+		return A2(
+			rtfeldman$elm_css$Css$property,
+			key,
+			A2(
+				elm$core$String$join,
+				' ',
+				_List_fromArray(
+					[argA.cY, argB.cY])));
+	});
+var rtfeldman$elm_css$Css$padding2 = rtfeldman$elm_css$Css$prop2('padding');
+var rtfeldman$elm_css$Css$solid = {u: 0, Z: 0, cY: 'solid'};
+var rtfeldman$elm_css$Css$UnitlessInteger = 0;
+var rtfeldman$elm_css$Css$zero = {aG: 0, al: 0, K: 0, am: 0, an: 0, T: 0, U: 0, aI: 0, N: 0, a1: 0, aw: '', aS: 0, cY: '0'};
+var rtfeldman$elm_css$Css$Transitions$EaseOut = {$: 3};
+var rtfeldman$elm_css$Css$Transitions$easeOut = rtfeldman$elm_css$Css$Transitions$EaseOut;
+var rtfeldman$elm_css$Css$Transitions$Filter = 37;
+var rtfeldman$elm_css$Css$Transitions$Transition = elm$core$Basics$identity;
+var rtfeldman$elm_css$Css$Transitions$fullTransition = F4(
+	function (animation, duration, delay, timing) {
+		return {
+			aU: animation,
+			aW: elm$core$Maybe$Just(delay),
+			aY: duration,
+			a8: elm$core$Maybe$Just(timing)
+		};
+	});
+var rtfeldman$elm_css$Css$Transitions$filter3 = rtfeldman$elm_css$Css$Transitions$fullTransition(37);
+var rtfeldman$elm_css$Css$Transitions$propToString = function (prop) {
+	switch (prop) {
+		case 0:
+			return 'background';
+		case 1:
+			return 'background-color';
+		case 2:
+			return 'background-position';
+		case 3:
+			return 'background-size';
+		case 4:
+			return 'border';
+		case 5:
+			return 'border-bottom';
+		case 6:
+			return 'border-bottom-color';
+		case 7:
+			return 'border-bottom-left-radius';
+		case 8:
+			return 'border-bottom-right-radius';
+		case 9:
+			return 'border-bottom-width';
+		case 10:
+			return 'border-color';
+		case 11:
+			return 'border-left';
+		case 12:
+			return 'border-left-color';
+		case 13:
+			return 'border-left-width';
+		case 14:
+			return 'border-radius';
+		case 15:
+			return 'border-right';
+		case 16:
+			return 'border-right-color';
+		case 17:
+			return 'border-right-width';
+		case 18:
+			return 'border-top';
+		case 19:
+			return 'border-top-color';
+		case 20:
+			return 'border-top-left-radius';
+		case 21:
+			return 'border-top-right-radius';
+		case 22:
+			return 'border-top-width';
+		case 23:
+			return 'border-width';
+		case 24:
+			return 'bottom';
+		case 25:
+			return 'box-shadow';
+		case 26:
+			return 'caret-color';
+		case 27:
+			return 'clip';
+		case 28:
+			return 'clip-path';
+		case 29:
+			return 'color';
+		case 30:
+			return 'column-count';
+		case 31:
+			return 'column-gap';
+		case 32:
+			return 'column-rule';
+		case 33:
+			return 'column-rule-color';
+		case 34:
+			return 'column-rule-width';
+		case 35:
+			return 'column-width';
+		case 36:
+			return 'columns';
+		case 37:
+			return 'filter';
+		case 38:
+			return 'flex';
+		case 39:
+			return 'flex-basis';
+		case 40:
+			return 'flex-grow';
+		case 41:
+			return 'flex-shrink';
+		case 42:
+			return 'font';
+		case 43:
+			return 'font-size';
+		case 44:
+			return 'font-size-adjust';
+		case 45:
+			return 'font-stretch';
+		case 46:
+			return 'font-variation-settings';
+		case 47:
+			return 'font-weight';
+		case 48:
+			return 'grid-column-gap';
+		case 49:
+			return 'grid-gap';
+		case 50:
+			return 'grid-row-gap';
+		case 51:
+			return 'height';
+		case 52:
+			return 'left';
+		case 53:
+			return 'letter-spacing';
+		case 54:
+			return 'line-height';
+		case 55:
+			return 'margin';
+		case 56:
+			return 'margin-bottom';
+		case 57:
+			return 'margin-left';
+		case 58:
+			return 'margin-right';
+		case 59:
+			return 'margin-top';
+		case 60:
+			return 'mask';
+		case 61:
+			return 'mask-position';
+		case 62:
+			return 'mask-size';
+		case 63:
+			return 'max-height';
+		case 64:
+			return 'max-width';
+		case 65:
+			return 'min-height';
+		case 66:
+			return 'min-width';
+		case 67:
+			return 'object-position';
+		case 68:
+			return 'offset';
+		case 69:
+			return 'offset-anchor';
+		case 70:
+			return 'offset-distance';
+		case 71:
+			return 'offset-path';
+		case 72:
+			return 'offset-rotate';
+		case 73:
+			return 'opacity';
+		case 74:
+			return 'order';
+		case 75:
+			return 'outline';
+		case 76:
+			return 'outline-color';
+		case 77:
+			return 'outline-offset';
+		case 78:
+			return 'outline-width';
+		case 79:
+			return 'padding';
+		case 80:
+			return 'padding-bottom';
+		case 81:
+			return 'padding-left';
+		case 82:
+			return 'padding-right';
+		case 83:
+			return 'padding-top';
+		case 84:
+			return 'right';
+		case 85:
+			return 'tab-size';
+		case 86:
+			return 'text-indent';
+		case 87:
+			return 'text-shadow';
+		case 88:
+			return 'top';
+		case 89:
+			return 'transform';
+		case 90:
+			return 'transform-origin';
+		case 91:
+			return 'vertical-align';
+		case 92:
+			return 'visibility';
+		case 93:
+			return 'width';
+		case 94:
+			return 'word-spacing';
+		default:
+			return 'z-index';
+	}
+};
+var rtfeldman$elm_css$Css$Transitions$timeToString = function (time) {
+	return elm$core$String$fromFloat(time) + 'ms';
+};
+var rtfeldman$elm_css$Css$Transitions$timingFunctionToString = function (tf) {
+	switch (tf.$) {
+		case 0:
+			return 'ease';
+		case 1:
+			return 'linear';
+		case 2:
+			return 'ease-in';
+		case 3:
+			return 'ease-out';
+		case 4:
+			return 'ease-in-out';
+		case 5:
+			return 'step-start';
+		case 6:
+			return 'step-end';
+		default:
+			var _float = tf.a;
+			var float2 = tf.b;
+			var float3 = tf.c;
+			var float4 = tf.d;
+			return 'cubic-bezier(' + (elm$core$String$fromFloat(_float) + (' , ' + (elm$core$String$fromFloat(float2) + (' , ' + (elm$core$String$fromFloat(float3) + (' , ' + (elm$core$String$fromFloat(float4) + ')')))))));
+	}
+};
+var rtfeldman$elm_css$Css$Transitions$transition = function (options) {
+	var v = A3(
+		elm$core$String$slice,
+		0,
+		-1,
+		A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n0, s) {
+					var animation = _n0.aU;
+					var duration = _n0.aY;
+					var delay = _n0.aW;
+					var timing = _n0.a8;
+					return s + (A2(
+						elm$core$String$join,
+						' ',
+						_List_fromArray(
+							[
+								rtfeldman$elm_css$Css$Transitions$propToString(animation),
+								rtfeldman$elm_css$Css$Transitions$timeToString(duration),
+								A2(
+								elm$core$Maybe$withDefault,
+								'',
+								A2(elm$core$Maybe$map, rtfeldman$elm_css$Css$Transitions$timeToString, delay)),
+								A2(
+								elm$core$Maybe$withDefault,
+								'',
+								A2(elm$core$Maybe$map, rtfeldman$elm_css$Css$Transitions$timingFunctionToString, timing))
+							])) + ',');
+				}),
+			'',
+			options));
+	return A2(rtfeldman$elm_css$Css$property, 'transition', v);
+};
+var rtfeldman$elm_css$Html$Styled$div = rtfeldman$elm_css$Html$Styled$node('div');
+var rtfeldman$elm_css$Html$Styled$h1 = rtfeldman$elm_css$Html$Styled$node('h1');
 var rtfeldman$elm_css$VirtualDom$Styled$text = function (str) {
 	return rtfeldman$elm_css$VirtualDom$Styled$Unstyled(
 		elm$virtual_dom$VirtualDom$text(str));
 };
 var rtfeldman$elm_css$Html$Styled$text = rtfeldman$elm_css$VirtualDom$Styled$text;
-var author$project$View$viewError = function (error) {
-	return rtfeldman$elm_css$Html$Styled$text(
-		function () {
-			switch (error.$) {
-				case 0:
-					return 'The given world size is not valid';
-				case 1:
-					return 'There is no hamster in the world';
-				case 2:
-					return 'The hamster collided with a wall';
-				case 3:
-					return 'The hamster has fallen out of the world';
-				case 4:
-					return 'Your code run for too long';
-				default:
-					var instruction = error.a;
-					return 'The sub \"' + (instruction + '\" was never defined');
-			}
-		}());
-};
-var rtfeldman$elm_css$Css$maxWidth = rtfeldman$elm_css$Css$prop1('max-width');
 var rtfeldman$elm_css$VirtualDom$Styled$KeyedNode = F3(
 	function (a, b, c) {
 		return {$: 2, a: a, b: b, c: c};
 	});
 var rtfeldman$elm_css$VirtualDom$Styled$keyedNode = rtfeldman$elm_css$VirtualDom$Styled$KeyedNode;
 var rtfeldman$elm_css$Html$Styled$Keyed$node = rtfeldman$elm_css$VirtualDom$Styled$keyedNode;
-var author$project$View$viewWorld = function (maybeWorld) {
-	if (!maybeWorld.$) {
-		var world = maybeWorld.a;
-		return A3(
-			rtfeldman$elm_css$Html$Styled$Keyed$node,
-			'div',
-			_List_fromArray(
-				[
-					rtfeldman$elm_css$Html$Styled$Attributes$css(
-					_List_fromArray(
-						[
-							A2(rtfeldman$elm_css$Css$property, 'display', 'grid'),
-							A2(
-							rtfeldman$elm_css$Css$property,
-							'grid-template-columns',
-							'repeat(' + (elm$core$String$fromInt(
-								author$project$World$width(maybeWorld)) + ', 1fr)')),
-							A2(
-							rtfeldman$elm_css$Css$property,
-							'grid-template-rows',
-							'repeat(' + (elm$core$String$fromInt(
-								author$project$World$height(maybeWorld)) + ', 1fr)')),
-							rtfeldman$elm_css$Css$maxWidth(
-							rtfeldman$elm_css$Css$px(
-								author$project$World$width(maybeWorld) * 32))
-						]))
-				]),
-			A3(
-				elm$core$List$foldr,
-				elm$core$Basics$append,
-				_List_Nil,
-				elm$core$Array$toList(
-					A2(
-						elm$core$Array$indexedMap,
-						F2(
-							function (y, row) {
-								return elm$core$Array$toList(
-									A2(
-										elm$core$Array$indexedMap,
-										F2(
-											function (x, tile) {
-												return _Utils_Tuple2(
-													elm$core$String$fromInt(x) + (',' + elm$core$String$fromInt(y)),
-													A3(author$project$View$lazyViewTile, x, y, tile));
-											}),
-										row));
-							}),
-						world.cT))));
+var author$project$View$viewError = function (error) {
+	if (error.$ === 2) {
+		var maybeWorld = error.a;
+		return A2(
+			author$project$View$viewWorld,
+			elm$core$Maybe$Just(error),
+			maybeWorld);
 	} else {
-		var err = maybeWorld.a;
-		return author$project$View$viewError(err);
+		return rtfeldman$elm_css$Html$Styled$text(
+			author$project$View$errorToString(error));
 	}
 };
+var author$project$View$viewWorld = F2(
+	function (maybeError, maybeWorld) {
+		if (!maybeWorld.$) {
+			var world = maybeWorld.a;
+			var renderedWorld = A3(
+				rtfeldman$elm_css$Html$Styled$Keyed$node,
+				'div',
+				_List_fromArray(
+					[
+						rtfeldman$elm_css$Html$Styled$Attributes$css(
+						_Utils_ap(
+							_List_fromArray(
+								[
+									A2(rtfeldman$elm_css$Css$property, 'display', 'grid'),
+									A2(
+									rtfeldman$elm_css$Css$property,
+									'grid-template-columns',
+									'repeat(' + (elm$core$String$fromInt(
+										author$project$World$width(maybeWorld)) + ', 1fr)')),
+									A2(
+									rtfeldman$elm_css$Css$property,
+									'grid-template-rows',
+									'repeat(' + (elm$core$String$fromInt(
+										author$project$World$height(maybeWorld)) + ', 1fr)')),
+									rtfeldman$elm_css$Css$maxWidth(
+									rtfeldman$elm_css$Css$px(
+										author$project$World$width(maybeWorld) * 32)),
+									rtfeldman$elm_css$Css$Transitions$transition(
+									_List_fromArray(
+										[
+											A3(rtfeldman$elm_css$Css$Transitions$filter3, 500, 0, rtfeldman$elm_css$Css$Transitions$easeOut)
+										]))
+								]),
+							A2(
+								elm$core$Maybe$withDefault,
+								_List_Nil,
+								A2(
+									elm$core$Maybe$map,
+									elm$core$Basics$always(
+										_List_fromArray(
+											[
+												A2(rtfeldman$elm_css$Css$property, 'filter', 'grayscale(70%)')
+											])),
+									maybeError))))
+					]),
+				A3(
+					elm$core$List$foldr,
+					elm$core$Basics$append,
+					_List_Nil,
+					elm$core$Array$toList(
+						A2(
+							elm$core$Array$indexedMap,
+							F2(
+								function (y, row) {
+									return elm$core$Array$toList(
+										A2(
+											elm$core$Array$indexedMap,
+											F2(
+												function (x, tile) {
+													return _Utils_Tuple2(
+														elm$core$String$fromInt(x) + (',' + elm$core$String$fromInt(y)),
+														A3(author$project$View$lazyViewTile, x, y, tile));
+												}),
+											row));
+								}),
+							world.cT))));
+			return A2(
+				rtfeldman$elm_css$Html$Styled$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						function () {
+						if (!maybeError.$) {
+							var error = maybeError.a;
+							return A2(
+								rtfeldman$elm_css$Html$Styled$h1,
+								_List_fromArray(
+									[
+										rtfeldman$elm_css$Html$Styled$Attributes$css(
+										_List_fromArray(
+											[
+												A3(
+												rtfeldman$elm_css$Css$border3,
+												rtfeldman$elm_css$Css$px(2),
+												rtfeldman$elm_css$Css$solid,
+												rtfeldman$elm_css$Css$hex('F08F46')),
+												rtfeldman$elm_css$Css$backgroundColor(
+												rtfeldman$elm_css$Css$hex('fff')),
+												A2(
+												rtfeldman$elm_css$Css$padding2,
+												author$project$Css$Extra$unit(1),
+												author$project$Css$Extra$unit(2)),
+												rtfeldman$elm_css$Css$margin(rtfeldman$elm_css$Css$zero),
+												rtfeldman$elm_css$Css$marginBottom(
+												author$project$Css$Extra$unit(1)),
+												rtfeldman$elm_css$Css$color(
+												rtfeldman$elm_css$Css$hex('F08F46'))
+											]))
+									]),
+								_List_fromArray(
+									[
+										rtfeldman$elm_css$Html$Styled$text(
+										author$project$View$errorToString(error))
+									]));
+						} else {
+							return rtfeldman$elm_css$Html$Styled$text('');
+						}
+					}(),
+						renderedWorld
+					]));
+		} else {
+			var err = maybeWorld.a;
+			return author$project$View$viewError(err);
+		}
+	});
 var author$project$Code$getSubs = function (_n0) {
 	var program = _n0.bl;
 	return program;
@@ -10459,7 +10838,6 @@ var elm$parser$Parser$deadEndsToString = function (deadEnds) {
 	return 'TODO deadEndsToString';
 };
 var rtfeldman$elm_css$Html$Styled$button = rtfeldman$elm_css$Html$Styled$node('button');
-var rtfeldman$elm_css$Html$Styled$div = rtfeldman$elm_css$Html$Styled$node('div');
 var rtfeldman$elm_css$Html$Styled$h2 = rtfeldman$elm_css$Html$Styled$node('h2');
 var rtfeldman$elm_css$Html$Styled$input = rtfeldman$elm_css$Html$Styled$node('input');
 var rtfeldman$elm_css$Html$Styled$Attributes$max = rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('max');
@@ -10642,18 +11020,6 @@ var author$project$View$Sidebar$viewControls = function (model) {
 				author$project$Code$getStack(model.q))
 			]));
 };
-var rtfeldman$elm_css$Css$prop3 = F4(
-	function (key, argA, argB, argC) {
-		return A2(
-			rtfeldman$elm_css$Css$property,
-			key,
-			A2(
-				elm$core$String$join,
-				' ',
-				_List_fromArray(
-					[argA.cY, argB.cY, argC.cY])));
-	});
-var rtfeldman$elm_css$Css$border3 = rtfeldman$elm_css$Css$prop3('border');
 var rtfeldman$elm_css$Css$marginLeft = rtfeldman$elm_css$Css$prop1('margin-left');
 var rtfeldman$elm_css$Css$UnitlessFloat = 0;
 var rtfeldman$elm_css$Css$num = function (val) {
@@ -10669,10 +11035,10 @@ var rtfeldman$elm_css$Css$num = function (val) {
 };
 var rtfeldman$elm_css$Css$order = rtfeldman$elm_css$Css$prop1('order');
 var rtfeldman$elm_css$Css$padding = rtfeldman$elm_css$Css$prop1('padding');
-var rtfeldman$elm_css$Css$solid = {u: 0, Z: 0, cY: 'solid'};
+var rtfeldman$elm_css$Html$Styled$aside = rtfeldman$elm_css$Html$Styled$node('aside');
 var author$project$View$Sidebar$view = function (model) {
 	return A2(
-		rtfeldman$elm_css$Html$Styled$div,
+		rtfeldman$elm_css$Html$Styled$aside,
 		_List_fromArray(
 			[
 				rtfeldman$elm_css$Html$Styled$Attributes$css(
@@ -10804,6 +11170,7 @@ var rtfeldman$elm_css$Css$resize = rtfeldman$elm_css$Css$prop1('resize');
 var rtfeldman$elm_css$Css$sansSerif = {R: 0, cY: 'sans-serif'};
 var rtfeldman$elm_css$Css$VhUnits = 0;
 var rtfeldman$elm_css$Css$vh = A2(rtfeldman$elm_css$Css$Internal$lengthConverter, 0, 'vh');
+var rtfeldman$elm_css$Html$Styled$main_ = rtfeldman$elm_css$Html$Styled$node('main');
 var rtfeldman$elm_css$Html$Styled$textarea = rtfeldman$elm_css$Html$Styled$node('textarea');
 var author$project$View$mainView = function (model) {
 	return A2(
@@ -10842,7 +11209,7 @@ var author$project$View$mainView = function (model) {
 		_List_fromArray(
 			[
 				A2(
-				rtfeldman$elm_css$Html$Styled$div,
+				rtfeldman$elm_css$Html$Styled$main_,
 				_List_fromArray(
 					[
 						rtfeldman$elm_css$Html$Styled$Attributes$css(
@@ -10859,7 +11226,7 @@ var author$project$View$mainView = function (model) {
 					]),
 				_List_fromArray(
 					[
-						author$project$View$viewWorld(model.az)
+						A2(author$project$View$viewWorld, elm$core$Maybe$Nothing, model.az)
 					])),
 				A2(
 				rtfeldman$elm_css$Html$Styled$div,
