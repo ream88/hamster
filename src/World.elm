@@ -41,7 +41,7 @@ type Direction
 type Error
     = InvalidWorldSize
     | NoHamster
-    | Collision
+    | Collision (Result Error World)
     | OutOfWorld
     | ExecutionLimitReached
     | UnknownInstructionCalled String
@@ -193,7 +193,7 @@ moveHamster maybeWorld =
             in
             case get newX newY maybeWorld of
                 Just Wall ->
-                    Err Collision
+                    Err <| Collision maybeWorld
 
                 Nothing ->
                     Err OutOfWorld

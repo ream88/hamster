@@ -13,7 +13,7 @@ import Style exposing (..)
 
 
 view model =
-    div
+    aside
         [ css
             [ order (num 2)
             , Css.property "grid-row" "span 2"

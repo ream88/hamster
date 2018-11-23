@@ -6,6 +6,7 @@ import Browser.Events as Events
 import Code exposing (Function, Instruction(..))
 import Css exposing (..)
 import Css.Extra as Css exposing (..)
+import Css.Transitions exposing (easeOut, transition)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
 import Html.Styled.Events exposing (..)
@@ -38,7 +39,7 @@ mainView model =
             , lineHeight mediumLineHeight
             ]
         ]
-        [ div
+        [ main_
             [ css
                 [ displayFlex
                 , maxHeight (px (16 * 32))
@@ -47,7 +48,7 @@ mainView model =
                 , order (num 1)
                 ]
             ]
-            [ viewWorld model.world ]
+            [ viewWorld Nothing model.world ]
         , div
             [ css
                 [ order (num 3)
@@ -77,27 +78,55 @@ mainView model =
         ]
 
 
-viewWorld : Result Error World -> Html Msg
-viewWorld maybeWorld =
+viewWorld : Maybe Error -> Result Error World -> Html Msg
+viewWorld maybeError maybeWorld =
     case maybeWorld of
         Ok world ->
-            world.tiles
-                |> Array.indexedMap
-                    (\y row ->
-                        row
-                            |> Array.indexedMap (\x tile -> ( String.fromInt x ++ "," ++ String.fromInt y, lazyViewTile x y tile ))
-                            |> Array.toList
-                    )
-                |> Array.toList
-                |> List.foldr (++) []
-                |> Keyed.node "div"
-                    [ css
-                        [ Css.property "display" "grid"
-                        , Css.property "grid-template-columns" ("repeat(" ++ (String.fromInt <| World.width maybeWorld) ++ ", 1fr)")
-                        , Css.property "grid-template-rows" ("repeat(" ++ (String.fromInt <| World.height maybeWorld) ++ ", 1fr)")
-                        , maxWidth (px <| toFloat <| World.width maybeWorld * 32)
-                        ]
-                    ]
+            let
+                renderedWorld =
+                    world.tiles
+                        |> Array.indexedMap
+                            (\y row ->
+                                row
+                                    |> Array.indexedMap (\x tile -> ( String.fromInt x ++ "," ++ String.fromInt y, lazyViewTile x y tile ))
+                                    |> Array.toList
+                            )
+                        |> Array.toList
+                        |> List.foldr (++) []
+                        |> Keyed.node "div"
+                            [ css
+                                ([ Css.property "display" "grid"
+                                 , Css.property "grid-template-columns" ("repeat(" ++ (String.fromInt <| World.width maybeWorld) ++ ", 1fr)")
+                                 , Css.property "grid-template-rows" ("repeat(" ++ (String.fromInt <| World.height maybeWorld) ++ ", 1fr)")
+                                 , maxWidth (px <| toFloat <| World.width maybeWorld * 32)
+                                 , transition [ Css.Transitions.filter3 500 0 easeOut ]
+                                 ]
+                                    ++ (maybeError
+                                            |> Maybe.map (always [ Css.property "filter" "grayscale(70%)" ])
+                                            |> Maybe.withDefault []
+                                       )
+                                )
+                            ]
+            in
+            div []
+                [ case maybeError of
+                    Just error ->
+                        h1
+                            [ css
+                                [ border3 (px 2) solid (hex "F08F46")
+                                , backgroundColor (hex "fff")
+                                , padding2 (unit 1) (unit 2)
+                                , margin zero
+                                , marginBottom (unit 1)
+                                , color (hex "F08F46")
+                                ]
+                            ]
+                            [ error |> errorToString |> text ]
+
+                    Nothing ->
+                        text ""
+                , renderedWorld
+                ]
 
         Err err ->
             viewError err
@@ -177,14 +206,24 @@ viewTile x y tile =
 
 viewError : Error -> Html Msg
 viewError error =
-    (case error of
+    case error of
+        Collision maybeWorld ->
+            viewWorld (Just error) maybeWorld
+
+        _ ->
+            error |> errorToString |> text
+
+
+errorToString : Error -> String
+errorToString error =
+    case error of
         InvalidWorldSize ->
             "The given world size is not valid"
 
         NoHamster ->
             "There is no hamster in the world"
 
-        Collision ->
+        Collision _ ->
             "The hamster collided with a wall"
 
         OutOfWorld ->
@@ -195,5 +234,3 @@ viewError error =
 
         UnknownInstructionCalled instruction ->
             "The sub \"" ++ instruction ++ "\" was never defined"
-    )
-        |> text
