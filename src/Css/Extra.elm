@@ -80,7 +80,7 @@ smallLineHeight =
 
 mediumFontSize : Css.Px
 mediumFontSize =
-    px 18
+    px 24
 
 
 mediumLineHeight : Css.Px

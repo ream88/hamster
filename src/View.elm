@@ -6,6 +6,7 @@ import Browser.Events as Events
 import Code exposing (Function, Instruction(..))
 import Css exposing (..)
 import Css.Extra as Css exposing (..)
+import Css.Global exposing (body, global)
 import Css.Transitions exposing (easeOut, transition)
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
@@ -14,6 +15,7 @@ import Html.Styled.Keyed as Keyed
 import Html.Styled.Lazy as Lazy
 import Model exposing (Model)
 import Msg exposing (Msg(..))
+import Style exposing (..)
 import View.Sidebar as Sidebar
 import World exposing (Direction(..), Error(..), Tile(..), World)
 
@@ -31,15 +33,17 @@ mainView model =
             , Css.property "display" "grid"
             , Css.property "grid-template-columns" "auto 400px"
             , Css.property "grid-template-rows" "1fr 1fr"
-            , fontFamilies [ "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", .value sansSerif ]
+            , monospaced
             , padding mediumSpace
             , boxSizing borderBox
-            , backgroundImage (url "background.svg")
             , fontSize mediumFontSize
             , lineHeight mediumLineHeight
             ]
         ]
-        [ main_
+        [ global
+            [ body [ backgroundImage (url "background.svg") ]
+            ]
+        , main_
             [ css
                 [ displayFlex
                 , maxHeight (px (16 * 32))
@@ -59,10 +63,10 @@ mainView model =
                 [ css
                     [ Css.width (pct 100)
                     , Css.height (pct 100)
-                    , border3 (px 2) solid (hex "000")
+                    , defaultBorder
                     , padding smallSpace
                     , boxSizing borderBox
-                    , fontFamilies [ "Consolas", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Monaco", "Courier New", "Courier", .value monospace ]
+                    , monospaced
                     , resize none
                     , focus
                         [ outline none

@@ -2,6 +2,7 @@ module View.Sidebar exposing (view)
 
 import Code exposing (Function(..), Instruction(..))
 import Css exposing (..)
+import Css.Extra as Css exposing (..)
 import Dict
 import Html.Styled as Html exposing (..)
 import Html.Styled.Attributes as Attributes exposing (..)
@@ -19,51 +20,61 @@ view model =
             , Css.property "grid-row" "span 2"
             , backgroundColor (hex "fff")
             , padding (px 16)
-            , border3 (px 2) solid (hex "000")
+            , defaultBorder
             , marginLeft (px 32)
+            , displayFlex
+            , flexDirection column
+            , justifyContent flexEnd
             ]
         ]
-        [ viewControls model ]
+        [ controlButtons model
+        , input
+            [ type_ "range"
+            , css [ slider ]
+            , onInput (SetInterval << String.toInt)
+            , Attributes.min "0"
+            , Attributes.max "1000"
+            , step "1"
+            , value (String.fromInt model.interval)
+            ]
+            []
+        , cheatButtons model
+        ]
 
 
-viewControls : Model -> Html Msg
-viewControls model =
-    div []
-        [ button [ onClick <| ParseCode "sub main() {\n  go();\n}" ] [ text "Go" ]
-        , button [ onClick <| ParseCode "sub main() {\n  turnLeft();\n}" ] [ text "Turn Left" ]
-        , button [ onClick <| ParseCode "sub main() {\n  if (free()) {\n    go();\n  }\n}" ] [ text "Go if Free" ]
-        , button [ onClick <| ParseCode "sub main() {\n  while (free()) {\n    go();\n  }\n}" ] [ text "Go while Free" ]
-        , button [ onClick <| ParseCode "sub main() {\n  while (free()) {\n    while (free()) {\n      go();\n    }\n    turnLeft();\n  }\n}" ] [ text "Run forever in circle" ]
-        , button [ onClick Next ] [ text "Next" ]
-        , button [ onClick Toggle ]
+controlButtons : Model -> Html Msg
+controlButtons model =
+    div
+        [ css
+            [ displayFlex
+            , justifyContent spaceBetween
+            ]
+        ]
+        [ flatButton [ onClick Toggle ]
             [ if model.running then
                 text "Stop"
 
               else
                 text "Start"
             ]
-        , button [ onClick Reset ] [ text "Reset" ]
-        , input
-            [ type_ "range"
-            , onInput (SetInterval << String.toInt)
-            , Attributes.min "0"
-            , Attributes.max "1000"
-            , step "250"
-            , value (String.fromInt model.interval)
-            ]
-            []
-        , h2 [] [ text "Parser Result" ]
-        , case Code.getSubs model.code of
-            Ok subs ->
-                subs
-                    |> Dict.toList
-                    |> List.map viewSub
-                    |> ul []
+        , flatButton [ onClick Reset ] [ text "Reset" ]
+        ]
 
-            Err err ->
-                text <| Parser.deadEndsToString err
-        , h2 [] [ text "Stack" ]
-        , viewInstructions <| Code.getStack <| model.code
+
+cheatButtons : Model -> Html Msg
+cheatButtons model =
+    div
+        [ css
+            [ displayFlex
+            , justifyContent spaceBetween
+            , flexWrap Css.wrap
+            ]
+        ]
+        [ flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  go();\n}" ] [ text "Go" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  turnLeft();\n}" ] [ text "Turn Left" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  if (free()) {\n    go();\n  }\n}" ] [ text "Go if Free" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  while (free()) {\n    go();\n  }\n}" ] [ text "Go while Free" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  while (free()) {\n    while (free()) {\n      go();\n    }\n    turnLeft();\n  }\n}" ] [ text "Run forever in circle" ]
         ]
 
 
