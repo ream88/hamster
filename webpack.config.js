@@ -52,6 +52,7 @@ module.exports = {
     ]
   },
   devServer: {
-    contentBase: path.join(__dirname, 'assets')
+    contentBase: path.join(__dirname, 'assets'),
+    port: 8080
   }
 }
