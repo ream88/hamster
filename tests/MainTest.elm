@@ -48,12 +48,19 @@ goInstructionTests =
                     |> Expect.equal (Err OutOfWorld)
         , test "causes the hamster to collide with the wall" <|
             \_ ->
+                let
+                    worldAfterCollision =
+                        sampleWorld
+                            |> World.set 0 0 (Hamster South)
+                            |> World.set 0 1 Wall
+                            |> setExecutions 1
+                in
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
                     |> World.set 0 1 Wall
                     |> executeInstruction (SubCall "go") sampleCode
                     |> Tuple.first
-                    |> Expect.equal (Err Collision)
+                    |> Expect.equal (Err (Collision worldAfterCollision))
         , test "moves the hamster one field into the current direction" <|
             \_ ->
                 sampleWorld
@@ -233,6 +240,10 @@ sampleWorld =
 sampleCode : Code
 sampleCode =
     Code.parse ""
+
+
+
+-- TODO: This should probably be internal
 
 
 setExecutions : Int -> Result Error World -> Result Error World
