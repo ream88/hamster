@@ -27,7 +27,8 @@ view model =
             , justifyContent flexEnd
             ]
         ]
-        [ controlButtons model
+        [ debugView model
+        , controlButtons model
         , input
             [ type_ "range"
             , css [ slider ]
@@ -40,6 +41,17 @@ view model =
             []
         , cheatButtons model
         ]
+
+
+debugView : Model -> Html Msg
+debugView model =
+    case model.code |> Code.getSubs of
+        Ok subs ->
+            text <| Debug.toString <| subs
+
+        -- TODO: Improve error messages
+        Err problems ->
+            text <| "Problems parsing the code" ++ Debug.toString problems
 
 
 controlButtons : Model -> Html Msg
