@@ -24,34 +24,51 @@ view model =
             , marginLeft (px 32)
             , displayFlex
             , flexDirection column
-            , justifyContent flexEnd
+            , justifyContent spaceBetween
             ]
         ]
         [ debugView model
-        , controlButtons model
-        , input
-            [ type_ "range"
-            , css [ slider ]
-            , onInput (SetInterval << String.toInt)
-            , Attributes.min "0"
-            , Attributes.max "1000"
-            , step "1"
-            , value (String.fromInt model.interval)
+        , div
+            [ css
+                [ displayFlex
+                , flexDirection column
+                , justifyContent flexEnd
+                ]
             ]
-            []
-        , cheatButtons model
+            [ controlButtons model
+            , input
+                [ type_ "range"
+                , css [ slider ]
+                , onInput (SetInterval << String.toInt)
+                , Attributes.min "0"
+                , Attributes.max "1000"
+                , step "1"
+                , value (String.fromInt model.interval)
+                ]
+                []
+            , cheatButtons model
+            ]
         ]
 
 
 debugView : Model -> Html Msg
 debugView model =
-    case model.code |> Code.getSubs of
+    case Code.getSubs model.code of
         Ok subs ->
-            text <| Debug.toString <| subs
+            subs
+                |> Dict.toList
+                |> List.map viewSub
+                |> ul
+                    [ css
+                        [ listStyle none
+                        , margin zero
+                        , paddingLeft zero
+                        ]
+                    ]
 
         -- TODO: Improve error messages
         Err problems ->
-            text <| "Problems parsing the code" ++ Debug.toString problems
+            text <| Debug.toString problems
 
 
 controlButtons : Model -> Html Msg
@@ -94,14 +111,19 @@ viewInstructions : List Instruction -> Html Msg
 viewInstructions instructions =
     instructions
         |> List.map (\instruction -> li [] (viewInstruction instruction))
-        |> ul [ css [ monospaced ] ]
+        |> ul
+            [ css
+                [ listStyle none
+                , monospaced
+                ]
+            ]
 
 
 viewInstruction : Instruction -> List (Html Msg)
 viewInstruction instruction =
     case instruction of
         Call name ->
-            [ strong [] [ text (name ++ "") ] ]
+            [ strong [] [ text name ] ]
 
         If fun instructions ->
             [ text "if ", viewFunction fun, viewInstructions instructions ]
@@ -123,15 +145,14 @@ viewFunction fun =
             strong [] [ text " not ", viewFunction nestedFun ]
 
         Code.Free ->
-            strong [] [ text " free() " ]
+            strong [] [ text " free " ]
 
 
 viewSub : ( String, List Instruction ) -> Html Msg
 viewSub ( name, instructions ) =
     li
         []
-        [ text "sub "
+        [ text "program "
         , strong [] [ text name ]
-        , text "()"
         , viewInstructions instructions
         ]
