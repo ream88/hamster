@@ -226,6 +226,7 @@ notParser : Parser Function
 notParser =
     succeed Not
         |. keyword "not"
+        |. spaces
         |= lazy (\_ -> functionParser)
 
 

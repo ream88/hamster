@@ -67,11 +67,16 @@ ifInstructionTests =
                 end"""
                     |> parse
                     |> Expect.equal (Ok [ If Code.True [] ])
-        , test "if free end" <|
+        , test "if not true end" <|
             \_ ->
-                "if free end"
+                "if not true end"
                     |> parse
-                    |> Expect.equal (Ok [ If Code.Free [] ])
+                    |> Expect.equal (Ok [ If (Code.Not Code.True) [] ])
+        , test "if not free end" <|
+            \_ ->
+                "if not free end"
+                    |> parse
+                    |> Expect.equal (Ok [ If (Code.Not Code.Free) [] ])
         ]
 
 
@@ -89,6 +94,16 @@ whileInstructionTests =
                 end"""
                     |> parse
                     |> Expect.equal (Ok [ While Code.True [] ])
+        , test "while not true end" <|
+            \_ ->
+                "while not true end"
+                    |> parse
+                    |> Expect.equal (Ok [ While (Code.Not Code.True) [] ])
+        , test "while not free end" <|
+            \_ ->
+                "while not free end"
+                    |> parse
+                    |> Expect.equal (Ok [ While (Code.Not Code.Free) [] ])
         ]
 
 
