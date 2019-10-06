@@ -37,4 +37,4 @@ initWorld =
 
 initCode : Code
 initCode =
-    Code.parse "sub main() {\n  \n}"
+    Code.parse "program main\n  \nend"

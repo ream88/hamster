@@ -18,8 +18,22 @@ import Dict exposing (Dict)
 import Parser exposing (..)
 
 
+
+{-
+   Hamster Script
+
+   ```
+   program main
+     if free
+       go
+     end
+   end
+   ```
+-}
+
+
 type Instruction
-    = SubCall String
+    = Call String
     | If Function (List Instruction)
     | While Function (List Instruction)
 
@@ -112,8 +126,21 @@ subsParserHelper subs =
             |. spaces
             |= subParser
             |. spaces
-        , succeed () |> Parser.map (\_ -> Done subs)
+        , succeed ()
+            |> Parser.map (\_ -> Done subs)
         ]
+
+
+subParser : Parser ( String, List Instruction )
+subParser =
+    succeed Tuple.pair
+        |. keyword "program"
+        |. spaces
+        |= nameParser
+        |. spaces
+        |= lazy (\_ -> instructionsParser)
+        |. spaces
+        |. keyword "end"
 
 
 instructionsParser : Parser (List Instruction)
@@ -134,20 +161,17 @@ instructionsParserHelper instructions =
             |. spaces
         , succeed (\instruction -> Loop (instruction :: instructions))
             |. spaces
-            |= subCallParser
-            |. spaces
-            |. symbol ";"
+            -- callParser must be backtrackable, otherwise it parses "end" as a call
+            |= backtrackable callParser
             |. spaces
         , succeed () |> Parser.map (\_ -> Done (List.reverse instructions))
         ]
 
 
-subCallParser : Parser Instruction
-subCallParser =
-    succeed SubCall
+callParser : Parser Instruction
+callParser =
+    succeed Call
         |= nameParser
-        |. symbol "("
-        |. symbol ")"
 
 
 ifParser : Parser Instruction
@@ -155,17 +179,11 @@ ifParser =
     succeed If
         |. keyword "if"
         |. spaces
-        |. symbol "("
-        |. spaces
         |= functionParser
-        |. spaces
-        |. symbol ")"
-        |. spaces
-        |. symbol "{"
         |. spaces
         |= instructionsParser
         |. spaces
-        |. symbol "}"
+        |. keyword "end"
 
 
 whileParser : Parser Instruction
@@ -173,17 +191,11 @@ whileParser =
     succeed While
         |. keyword "while"
         |. spaces
-        |. symbol "("
-        |. spaces
         |= functionParser
-        |. spaces
-        |. symbol ")"
-        |. spaces
-        |. symbol "{"
         |. spaces
         |= instructionsParser
         |. spaces
-        |. symbol "}"
+        |. keyword "end"
 
 
 type Function
@@ -214,17 +226,13 @@ notParser : Parser Function
 notParser =
     succeed Not
         |. keyword "not"
-        |. symbol "("
         |= lazy (\_ -> functionParser)
-        |. symbol ")"
 
 
 freeParser : Parser Function
 freeParser =
     succeed Free
         |. keyword "free"
-        |. symbol "("
-        |. symbol ")"
 
 
 nameParser : Parser String
@@ -234,25 +242,14 @@ nameParser =
         |> getChompedString
         |> andThen
             (\string ->
-                if String.length string == 0 then
-                    problem "opps"
+                case string of
+                    "end" ->
+                        problem "keyword \"end\" is reserved"
 
-                else
-                    commit string
+                    _ ->
+                        if String.length string == 0 then
+                            problem "name required"
+
+                        else
+                            commit string
             )
-
-
-subParser : Parser ( String, List Instruction )
-subParser =
-    succeed Tuple.pair
-        |. keyword "sub"
-        |. spaces
-        |= nameParser
-        |. symbol "("
-        |. symbol ")"
-        |. spaces
-        |. symbol "{"
-        |. spaces
-        |= instructionsParser
-        |. spaces
-        |. symbol "}"

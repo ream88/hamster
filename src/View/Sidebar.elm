@@ -82,11 +82,11 @@ cheatButtons model =
             , flexWrap Css.wrap
             ]
         ]
-        [ flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  go();\n}" ] [ text "Go" ]
-        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  turnLeft();\n}" ] [ text "Turn Left" ]
-        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  if (free()) {\n    go();\n  }\n}" ] [ text "Go if Free" ]
-        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  while (free()) {\n    go();\n  }\n}" ] [ text "Go while Free" ]
-        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "sub main() {\n  while (free()) {\n    while (free()) {\n      go();\n    }\n    turnLeft();\n  }\n}" ] [ text "Run forever in circle" ]
+        [ flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main \n  go\nend" ] [ text "Go" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main \n  turnLeft\nend" ] [ text "Turn Left" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main \n  if free \n    go\n  end\nend" ] [ text "Go if Free" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main \n  while free \n    go\n  end\nend" ] [ text "Go while Free" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main \n  while free \n    while free \n      go\n    end\n    turnLeft\n  end\nend" ] [ text "Run forever in circle" ]
         ]
 
 
@@ -100,8 +100,8 @@ viewInstructions instructions =
 viewInstruction : Instruction -> List (Html Msg)
 viewInstruction instruction =
     case instruction of
-        SubCall name ->
-            [ strong [] [ text (name ++ "();") ] ]
+        Call name ->
+            [ strong [] [ text (name ++ "") ] ]
 
         If fun instructions ->
             [ text "if ", viewFunction fun, viewInstructions instructions ]

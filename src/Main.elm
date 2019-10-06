@@ -41,7 +41,7 @@ update msg model =
 
                 newCode =
                     if List.isEmpty (Code.getStack model.code) then
-                        model.code |> Code.prepend (SubCall "main")
+                        model.code |> Code.prepend (Call "main")
 
                     else
                         model.code
@@ -119,7 +119,7 @@ executeInstruction instruction code maybeWorld =
     of
         Ok world ->
             case instruction of
-                SubCall name ->
+                Call name ->
                     case name of
                         "go" ->
                             ( World.moveHamster (Ok world), Cmd.none )
