@@ -234,7 +234,7 @@ errorToString error =
             "The hamster has fallen out of the world"
 
         ExecutionLimitReached ->
-            "Your code run for too long"
+            "Your code ran for too long"
 
         UnknownInstructionCalled instruction ->
             "The sub \"" ++ instruction ++ "\" was never defined"
