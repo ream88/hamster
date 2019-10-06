@@ -235,6 +235,11 @@ freeParser =
         |. keyword "free"
 
 
+reservedKeywords : List String
+reservedKeywords =
+    [ "program", "if", "while", "end" ]
+
+
 nameParser : Parser String
 nameParser =
     succeed ()
@@ -242,14 +247,12 @@ nameParser =
         |> getChompedString
         |> andThen
             (\string ->
-                case string of
-                    "end" ->
-                        problem "keyword \"end\" is reserved"
+                if List.member string reservedKeywords then
+                    problem ("keyword \"" ++ string ++ "\" is reserved")
 
-                    _ ->
-                        if String.length string == 0 then
-                            problem "name required"
+                else if String.length string == 0 then
+                    problem "name required"
 
-                        else
-                            commit string
+                else
+                    commit string
             )
