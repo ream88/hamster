@@ -33,7 +33,7 @@ test -z "$status" || fail "./dist is not clean, will not deploy!"
 
 # Run webpack
 
-NODE_ENV=production npx webpack -p --silent
+NODE_ENV=production npx webpack -p --display errors-only
 
 # Check for changes
 
