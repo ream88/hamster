@@ -68,7 +68,7 @@ debugView model =
 
         -- TODO: Improve error messages
         Err problems ->
-            text <| Debug.toString problems
+            text "Code could not be compiled"
 
 
 controlButtons : Model -> Html Msg
