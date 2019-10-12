@@ -18,6 +18,10 @@ function ok {
 pwd=$(pwd)
 dist="./dist"
 
+# Check for dist folder
+
+test -d $dist || fail "dist directory is missing, ensure to checkout README.md on how to create it!"
+
 # Check git status of master
 
 test -z "$(git status --porcelain)" || fail ". is not clean, will not deploy!"
