@@ -61,7 +61,7 @@ ifInstructionTests =
                 "if true end"
                     |> parse
                     |> Expect.equal (Ok [ If Code.True [] ])
-        , test "multiline if (true) {}" <|
+        , test "multiline if true end" <|
             \_ ->
                 """if true
                 end"""
