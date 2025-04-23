@@ -1,6 +1,6 @@
 # hamster
 
-Everybody can program: https://hamster.world
+Everybody can program: https://hamster.mariouher.com
 
 
 ## Deployment

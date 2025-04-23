@@ -56,4 +56,4 @@ git commit --all -m "Deploy $sha" --quiet
 git push --quiet
 cd $pwd
 
-ok "Deployed to https://hamster.world"
+ok "Deployed to https://hamster.mariouher.com"
