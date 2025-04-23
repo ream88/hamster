@@ -74,18 +74,18 @@ goInstructionTests =
 
 turnLeftInstructionTests : Test
 turnLeftInstructionTests =
-    describe "a turnLeft instruction"
+    describe "a turn_left instruction"
         [ test "results in a NoHamster Err when no hamster is found" <|
             \_ ->
                 sampleWorld
-                    |> executeInstruction (Call "turnLeft") sampleCode
+                    |> executeInstruction (Call "turn_left") sampleCode
                     |> Tuple.first
                     |> Expect.equal (Err NoHamster)
         , test "turns the hamster to the left" <|
             \_ ->
                 sampleWorld
                     |> World.set 0 0 (Hamster South)
-                    |> executeInstruction (Call "turnLeft") sampleCode
+                    |> executeInstruction (Call "turn_left") sampleCode
                     |> Tuple.first
                     |> World.findHamster
                     |> Expect.equal (Just ( 0, 0, Hamster East ))

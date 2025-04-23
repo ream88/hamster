@@ -23,8 +23,8 @@ import Parser exposing (..)
    Hamster Script
 
    ```
-   program main
-     if free
+   program main do
+     if free do
        go
      end
    end
@@ -138,6 +138,8 @@ subParser =
         |. spaces
         |= nameParser
         |. spaces
+        |. keyword "do"
+        |. spaces
         |= lazy (\_ -> instructionsParser)
         |. spaces
         |. keyword "end"
@@ -181,6 +183,8 @@ ifParser =
         |. spaces
         |= functionParser
         |. spaces
+        |. keyword "do"
+        |. spaces
         |= instructionsParser
         |. spaces
         |. keyword "end"
@@ -192,6 +196,8 @@ whileParser =
         |. keyword "while"
         |. spaces
         |= functionParser
+        |. spaces
+        |. keyword "do"
         |. spaces
         |= instructionsParser
         |. spaces
@@ -238,13 +244,14 @@ freeParser =
 
 reservedKeywords : List String
 reservedKeywords =
-    [ "program", "if", "while", "end" ]
+    [ "program", "if", "while", "do", "end" ]
 
 
 nameParser : Parser String
 nameParser =
     succeed ()
-        |. chompWhile Char.isAlpha
+        |. chompIf Char.isLower
+        |. chompWhile (\c -> Char.isAlphaNum c || c == '_')
         |> getChompedString
         |> andThen
             (\string ->

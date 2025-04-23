@@ -124,7 +124,7 @@ executeInstruction instruction code maybeWorld =
                         "go" ->
                             ( World.moveHamster (Ok world), Cmd.none )
 
-                        "turnLeft" ->
+                        "turn_left" ->
                             ( World.turnHamster (Ok world), Cmd.none )
 
                         custom ->

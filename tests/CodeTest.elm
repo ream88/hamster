@@ -33,12 +33,12 @@ goInstructionTests =
 
 turnLeftInstructionTests : Test
 turnLeftInstructionTests =
-    describe "parses a turnLeft instruction"
-        [ test "turnLeft" <|
+    describe "parses a turn_left instruction"
+        [ test "turn_left" <|
             \_ ->
-                "turnLeft"
+                "turn_left"
                     |> parse
-                    |> Expect.equal (Ok [ Call "turnLeft" ])
+                    |> Expect.equal (Ok [ Call "turn_left" ])
         ]
 
 
@@ -56,25 +56,25 @@ unknownSubInstructionTests =
 ifInstructionTests : Test
 ifInstructionTests =
     describe "parses a If instruction"
-        [ test "if true end" <|
+        [ test "if true do end" <|
             \_ ->
-                "if true end"
+                "if true do end"
                     |> parse
                     |> Expect.equal (Ok [ If Code.True [] ])
-        , test "multiline if true end" <|
+        , test "multiline if true do end" <|
             \_ ->
-                """if true
+                """if true do
                 end"""
                     |> parse
                     |> Expect.equal (Ok [ If Code.True [] ])
-        , test "if not true end" <|
+        , test "if not true do end" <|
             \_ ->
-                "if not true end"
+                "if not true do end"
                     |> parse
                     |> Expect.equal (Ok [ If (Code.Not Code.True) [] ])
-        , test "if not free end" <|
+        , test "if not free do end" <|
             \_ ->
-                "if not free end"
+                "if not free do end"
                     |> parse
                     |> Expect.equal (Ok [ If (Code.Not Code.Free) [] ])
         ]
@@ -83,25 +83,25 @@ ifInstructionTests =
 whileInstructionTests : Test
 whileInstructionTests =
     describe "parses a While instruction"
-        [ test "while true end" <|
+        [ test "while true do end" <|
             \_ ->
-                "while true end"
+                "while true do end"
                     |> parse
                     |> Expect.equal (Ok [ While Code.True [] ])
-        , test "multiline while true end" <|
+        , test "multiline while true do end" <|
             \_ ->
-                """while true
+                """while true do
                 end"""
                     |> parse
                     |> Expect.equal (Ok [ While Code.True [] ])
-        , test "while not true end" <|
+        , test "while not true do end" <|
             \_ ->
-                "while not true end"
+                "while not true do end"
                     |> parse
                     |> Expect.equal (Ok [ While (Code.Not Code.True) [] ])
-        , test "while not free end" <|
+        , test "while not free do end" <|
             \_ ->
-                "while not free end"
+                "while not free do end"
                     |> parse
                     |> Expect.equal (Ok [ While (Code.Not Code.Free) [] ])
         ]
@@ -118,7 +118,7 @@ parse : String -> Result Problem (List Instruction)
 parse code =
     let
         wrappedCode =
-            "program main " ++ code ++ " end"
+            "program main do " ++ code ++ " end"
     in
     case Parser.run Code.parser wrappedCode of
         Ok subs ->

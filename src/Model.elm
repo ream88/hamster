@@ -37,4 +37,4 @@ initWorld =
 
 initCode : Code
 initCode =
-    Code.parse "program main\n  \nend"
+    Code.parse "program main do\n  \nend"
