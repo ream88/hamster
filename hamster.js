@@ -5810,6 +5810,43 @@ var $elm$parser$Parser$Advanced$andThen = F2(
 		};
 	});
 var $elm$parser$Parser$andThen = $elm$parser$Parser$Advanced$andThen;
+var $elm$parser$Parser$UnexpectedChar = {$: 11};
+var $elm$parser$Parser$Advanced$AddRight = F2(
+	function (a, b) {
+		return {$: 1, a: a, b: b};
+	});
+var $elm$parser$Parser$Advanced$DeadEnd = F4(
+	function (row, col, problem, contextStack) {
+		return {bO: col, cV: contextStack, ck: problem, ct: row};
+	});
+var $elm$parser$Parser$Advanced$fromState = F2(
+	function (s, x) {
+		return A2(
+			$elm$parser$Parser$Advanced$AddRight,
+			$elm$parser$Parser$Advanced$Empty,
+			A4($elm$parser$Parser$Advanced$DeadEnd, s.ct, s.bO, x, s.f));
+	});
+var $elm$parser$Parser$Advanced$chompIf = F2(
+	function (isGood, expecting) {
+		return function (s) {
+			var newOffset = A3($elm$parser$Parser$Advanced$isSubChar, isGood, s.b, s.a);
+			return _Utils_eq(newOffset, -1) ? A2(
+				$elm$parser$Parser$Advanced$Bad,
+				false,
+				A2($elm$parser$Parser$Advanced$fromState, s, expecting)) : (_Utils_eq(newOffset, -2) ? A3(
+				$elm$parser$Parser$Advanced$Good,
+				true,
+				0,
+				{bO: 1, f: s.f, g: s.g, b: s.b + 1, ct: s.ct + 1, a: s.a}) : A3(
+				$elm$parser$Parser$Advanced$Good,
+				true,
+				0,
+				{bO: s.bO + 1, f: s.f, g: s.g, b: newOffset, ct: s.ct, a: s.a}));
+		};
+	});
+var $elm$parser$Parser$chompIf = function (isGood) {
+	return A2($elm$parser$Parser$Advanced$chompIf, isGood, $elm$parser$Parser$UnexpectedChar);
+};
 var $elm$parser$Parser$chompWhile = $elm$parser$Parser$Advanced$chompWhile;
 var $elm$parser$Parser$Advanced$commit = function (a) {
 	return function (s) {
@@ -5878,21 +5915,6 @@ var $elm$core$List$member = F2(
 var $elm$parser$Parser$Problem = function (a) {
 	return {$: 12, a: a};
 };
-var $elm$parser$Parser$Advanced$AddRight = F2(
-	function (a, b) {
-		return {$: 1, a: a, b: b};
-	});
-var $elm$parser$Parser$Advanced$DeadEnd = F4(
-	function (row, col, problem, contextStack) {
-		return {bO: col, cV: contextStack, ck: problem, ct: row};
-	});
-var $elm$parser$Parser$Advanced$fromState = F2(
-	function (s, x) {
-		return A2(
-			$elm$parser$Parser$Advanced$AddRight,
-			$elm$parser$Parser$Advanced$Empty,
-			A4($elm$parser$Parser$Advanced$DeadEnd, s.ct, s.bO, x, s.f));
-	});
 var $elm$parser$Parser$Advanced$problem = function (x) {
 	return function (s) {
 		return A2(
@@ -5906,7 +5928,7 @@ var $elm$parser$Parser$problem = function (msg) {
 		$elm$parser$Parser$Problem(msg));
 };
 var $author$project$Code$reservedKeywords = _List_fromArray(
-	['program', 'if', 'while', 'end']);
+	['program', 'if', 'while', 'do', 'end']);
 var $elm$parser$Parser$Advanced$succeed = function (a) {
 	return function (s) {
 		return A3($elm$parser$Parser$Advanced$Good, false, a, s);
@@ -5921,8 +5943,14 @@ var $author$project$Code$nameParser = A2(
 	$elm$parser$Parser$getChompedString(
 		A2(
 			$elm$parser$Parser$ignorer,
-			$elm$parser$Parser$succeed(0),
-			$elm$parser$Parser$chompWhile($elm$core$Char$isAlpha))));
+			A2(
+				$elm$parser$Parser$ignorer,
+				$elm$parser$Parser$succeed(0),
+				$elm$parser$Parser$chompIf($elm$core$Char$isLower)),
+			$elm$parser$Parser$chompWhile(
+				function (c) {
+					return $elm$core$Char$isAlphaNum(c) || (c === '_');
+				}))));
 var $author$project$Code$callParser = A2(
 	$elm$parser$Parser$keeper,
 	$elm$parser$Parser$succeed($author$project$Code$Call),
@@ -6100,7 +6128,13 @@ function $author$project$Code$cyclic$ifParser() {
 					$elm$parser$Parser$succeed($author$project$Code$If),
 					$elm$parser$Parser$keyword('if')),
 				$elm$parser$Parser$spaces),
-			A2($elm$parser$Parser$ignorer, $author$project$Code$functionParser, $elm$parser$Parser$spaces)),
+			A2(
+				$elm$parser$Parser$ignorer,
+				A2(
+					$elm$parser$Parser$ignorer,
+					A2($elm$parser$Parser$ignorer, $author$project$Code$functionParser, $elm$parser$Parser$spaces),
+					$elm$parser$Parser$keyword('do')),
+				$elm$parser$Parser$spaces)),
 		A2(
 			$elm$parser$Parser$ignorer,
 			A2(
@@ -6121,7 +6155,13 @@ function $author$project$Code$cyclic$whileParser() {
 					$elm$parser$Parser$succeed($author$project$Code$While),
 					$elm$parser$Parser$keyword('while')),
 				$elm$parser$Parser$spaces),
-			A2($elm$parser$Parser$ignorer, $author$project$Code$functionParser, $elm$parser$Parser$spaces)),
+			A2(
+				$elm$parser$Parser$ignorer,
+				A2(
+					$elm$parser$Parser$ignorer,
+					A2($elm$parser$Parser$ignorer, $author$project$Code$functionParser, $elm$parser$Parser$spaces),
+					$elm$parser$Parser$keyword('do')),
+				$elm$parser$Parser$spaces)),
 		A2(
 			$elm$parser$Parser$ignorer,
 			A2(
@@ -6160,7 +6200,13 @@ var $author$project$Code$subParser = A2(
 				$elm$parser$Parser$succeed($elm$core$Tuple$pair),
 				$elm$parser$Parser$keyword('program')),
 			$elm$parser$Parser$spaces),
-		A2($elm$parser$Parser$ignorer, $author$project$Code$nameParser, $elm$parser$Parser$spaces)),
+		A2(
+			$elm$parser$Parser$ignorer,
+			A2(
+				$elm$parser$Parser$ignorer,
+				A2($elm$parser$Parser$ignorer, $author$project$Code$nameParser, $elm$parser$Parser$spaces),
+				$elm$parser$Parser$keyword('do')),
+			$elm$parser$Parser$spaces)),
 	A2(
 		$elm$parser$Parser$ignorer,
 		A2(
@@ -6264,7 +6310,7 @@ var $author$project$Code$parse = function (source) {
 		Q: _List_Nil
 	};
 };
-var $author$project$Model$initCode = $author$project$Code$parse('program main\n  \nend');
+var $author$project$Model$initCode = $author$project$Code$parse('program main do\n  \nend');
 var $author$project$World$East = 1;
 var $author$project$World$Hamster = function (a) {
 	return {$: 2, a: a};
@@ -7051,7 +7097,7 @@ var $author$project$Main$executeInstruction = F3(
 								$author$project$World$moveHamster(
 									$elm$core$Result$Ok(world)),
 								$elm$core$Platform$Cmd$none);
-						case 'turnLeft':
+						case 'turn_left':
 							return _Utils_Tuple2(
 								$author$project$World$turnHamster(
 									$elm$core$Result$Ok(world)),
@@ -9726,7 +9772,7 @@ var $author$project$View$Sidebar$cheatButtons = function (model) {
 								$author$project$Css$Extra$unit(1))
 							])),
 						$rtfeldman$elm_css$Html$Styled$Events$onClick(
-						$author$project$Msg$ParseCode('program main \n  go\nend'))
+						$author$project$Msg$ParseCode('program main do \n  go\nend'))
 					]),
 				_List_fromArray(
 					[
@@ -9743,7 +9789,7 @@ var $author$project$View$Sidebar$cheatButtons = function (model) {
 								$author$project$Css$Extra$unit(1))
 							])),
 						$rtfeldman$elm_css$Html$Styled$Events$onClick(
-						$author$project$Msg$ParseCode('program main \n  turnLeft\nend'))
+						$author$project$Msg$ParseCode('program main do \n  turn_left\nend'))
 					]),
 				_List_fromArray(
 					[
@@ -9760,7 +9806,7 @@ var $author$project$View$Sidebar$cheatButtons = function (model) {
 								$author$project$Css$Extra$unit(1))
 							])),
 						$rtfeldman$elm_css$Html$Styled$Events$onClick(
-						$author$project$Msg$ParseCode('program main \n  if free \n    go\n  end\nend'))
+						$author$project$Msg$ParseCode('program main do \n  if free do\n    go\n  end\nend'))
 					]),
 				_List_fromArray(
 					[
@@ -9777,7 +9823,7 @@ var $author$project$View$Sidebar$cheatButtons = function (model) {
 								$author$project$Css$Extra$unit(1))
 							])),
 						$rtfeldman$elm_css$Html$Styled$Events$onClick(
-						$author$project$Msg$ParseCode('program main \n  while free \n    go\n  end\nend'))
+						$author$project$Msg$ParseCode('program main do \n  while free do\n    go\n  end\nend'))
 					]),
 				_List_fromArray(
 					[
@@ -9794,7 +9840,7 @@ var $author$project$View$Sidebar$cheatButtons = function (model) {
 								$author$project$Css$Extra$unit(1))
 							])),
 						$rtfeldman$elm_css$Html$Styled$Events$onClick(
-						$author$project$Msg$ParseCode('program main \n  while free \n    while free \n      go\n    end\n    turnLeft\n  end\nend'))
+						$author$project$Msg$ParseCode('program main do \n  while free do\n    while free do\n      go\n    end\n    turn_left\n  end\nend'))
 					]),
 				_List_fromArray(
 					[
