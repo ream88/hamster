@@ -99,8 +99,8 @@ cheatButtons model =
             , flexWrap Css.wrap
             ]
         ]
-        [ flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main do \n  go\nend" ] [ text "Go" ]
-        , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main do \n  turn_left\nend" ] [ text "Turn Left" ]
+        [ flatButton [ css [ marginTop (unit 1) ], onClick <| AppendCall "go" ] [ text "Go" ]
+        , flatButton [ css [ marginTop (unit 1) ], onClick <| AppendCall "turn_left" ] [ text "Turn Left" ]
         , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main do \n  if free do\n    go\n  end\nend" ] [ text "Go if Free" ]
         , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main do \n  while free do\n    go\n  end\nend" ] [ text "Go while Free" ]
         , flatButton [ css [ marginTop (unit 1) ], onClick <| ParseCode "program main do \n  while free do\n    while free do\n      go\n    end\n    turn_left\n  end\nend" ] [ text "Run forever in circle" ]
