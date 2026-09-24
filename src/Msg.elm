@@ -8,6 +8,7 @@ import World exposing (Tile)
 type Msg
     = PrependInstruction Instruction
     | AppendInstruction Instruction
+    | AppendCall String
     | Toggle
     | SetInterval (Maybe Int)
     | Next

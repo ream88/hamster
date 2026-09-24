@@ -3,6 +3,7 @@ module Code exposing
     , Function(..)
     , Instruction(..)
     , append
+    , appendCall
     , getSource
     , getStack
     , getSub
@@ -79,6 +80,36 @@ append instruction (Code model) =
     Code { model | stack = model.stack ++ [ instruction ] }
 
 
+{-| Appends a call to the end of the main program's source, creating the main
+program if it does not exist yet. Code which cannot be parsed is left untouched.
+-}
+appendCall : String -> Code -> Code
+appendCall name ((Code { source, program }) as code) =
+    case ( program, Parser.run endOffsetsParser source ) of
+        ( Ok _, Ok endOffsets ) ->
+            case Dict.get "main" endOffsets of
+                Just offset ->
+                    parse
+                        (String.trimRight (String.left offset source)
+                            ++ "\n  "
+                            ++ name
+                            ++ "\n"
+                            ++ String.dropLeft offset source
+                        )
+
+                Nothing ->
+                    parse
+                        (String.trimRight source
+                            ++ "\n\nprogram main do\n  "
+                            ++ name
+                            ++ "\nend"
+                            |> String.trimLeft
+                        )
+
+        _ ->
+            code
+
+
 setStack : List Instruction -> Code -> Code
 setStack newStack (Code model) =
     Code { model | stack = newStack }
@@ -142,6 +173,38 @@ subParser =
         |. spaces
         |= lazy (\_ -> instructionsParser)
         |. spaces
+        |. keyword "end"
+
+
+{-| Parses the offset of each program's closing `end` keyword.
+-}
+endOffsetsParser : Parser (Dict String Int)
+endOffsetsParser =
+    loop Dict.empty
+        (\offsets ->
+            oneOf
+                [ succeed (\( name, offset ) -> Loop (Dict.insert name offset offsets))
+                    |. spaces
+                    |= subEndOffsetParser
+                    |. spaces
+                , succeed ()
+                    |> Parser.map (\_ -> Done offsets)
+                ]
+        )
+
+
+subEndOffsetParser : Parser ( String, Int )
+subEndOffsetParser =
+    succeed Tuple.pair
+        |. keyword "program"
+        |. spaces
+        |= nameParser
+        |. spaces
+        |. keyword "do"
+        |. spaces
+        |. lazy (\_ -> instructionsParser)
+        |. spaces
+        |= getOffset
         |. keyword "end"
 
 

@@ -17,6 +17,60 @@ tests =
             , ifInstructionTests
             , whileInstructionTests
             ]
+        , appendCallTests
+        ]
+
+
+appendCallTests : Test
+appendCallTests =
+    let
+        appendCall name source =
+            source
+                |> Code.parse
+                |> Code.appendCall name
+                |> Code.getSource
+    in
+    describe "appendCall"
+        [ test "replaces an empty line in main" <|
+            \_ ->
+                "program main do\n  \nend"
+                    |> appendCall "go"
+                    |> Expect.equal "program main do\n  go\nend"
+        , test "appends multiple calls" <|
+            \_ ->
+                "program main do\n  \nend"
+                    |> appendCall "go"
+                    |> appendCall "turn_left"
+                    |> appendCall "go"
+                    |> Expect.equal "program main do\n  go\n  turn_left\n  go\nend"
+        , test "appends after nested blocks" <|
+            \_ ->
+                "program main do\n  while free do\n    go\n  end\nend"
+                    |> appendCall "turn_left"
+                    |> Expect.equal "program main do\n  while free do\n    go\n  end\n  turn_left\nend"
+        , test "only touches the main program" <|
+            \_ ->
+                "program main do\n  go\nend\n\nprogram other do\n  go\nend"
+                    |> appendCall "turn_left"
+                    |> Expect.equal "program main do\n  go\n  turn_left\nend\n\nprogram other do\n  go\nend"
+        , test "creates main if missing" <|
+            \_ ->
+                "program other do\n  go\nend"
+                    |> appendCall "go"
+                    |> Expect.equal "program other do\n  go\nend\n\nprogram main do\n  go\nend"
+        , test "creates main in empty source" <|
+            \_ ->
+                ""
+                    |> appendCall "go"
+                    |> Expect.equal "program main do\n  go\nend"
+        , test "updates the parsed program" <|
+            \_ ->
+                "program main do\n  \nend"
+                    |> Code.parse
+                    |> Code.appendCall "go"
+                    |> Code.appendCall "go"
+                    |> Code.getSub "main"
+                    |> Expect.equal (Just [ Call "go", Call "go" ])
         ]
 
 

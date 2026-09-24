@@ -1,1 +1,1 @@
-- [ ] Make the Go and Turn Left buttons work again. At the moment they do not append multiple instructions.
+- [x] Make the Go and Turn Left buttons work again. At the moment they do not append multiple instructions.

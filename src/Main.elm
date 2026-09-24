@@ -34,6 +34,9 @@ update msg model =
         AppendInstruction instruction ->
             ( { model | code = Code.append instruction model.code }, Cmd.none )
 
+        AppendCall name ->
+            ( { model | code = Code.appendCall name model.code }, Cmd.none )
+
         Toggle ->
             let
                 newRunning =
