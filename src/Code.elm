@@ -98,13 +98,15 @@ appendCall name ((Code { source, program }) as code) =
                         )
 
                 Nothing ->
-                    parse
-                        (String.trimRight source
-                            ++ "\n\nprogram main do\n  "
-                            ++ name
-                            ++ "\nend"
-                            |> String.trimLeft
-                        )
+                    let
+                        main =
+                            "program main do\n  " ++ name ++ "\nend"
+                    in
+                    if String.isEmpty (String.trim source) then
+                        parse main
+
+                    else
+                        parse (String.trimRight source ++ "\n\n" ++ main)
 
         _ ->
             code

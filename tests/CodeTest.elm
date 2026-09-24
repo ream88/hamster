@@ -58,6 +58,11 @@ appendCallTests =
                 "program other do\n  go\nend"
                     |> appendCall "go"
                     |> Expect.equal "program other do\n  go\nend\n\nprogram main do\n  go\nend"
+        , test "keeps leading whitespace when creating main" <|
+            \_ ->
+                "\n  program other do\n  go\nend"
+                    |> appendCall "go"
+                    |> Expect.equal "\n  program other do\n  go\nend\n\nprogram main do\n  go\nend"
         , test "creates main in empty source" <|
             \_ ->
                 ""
